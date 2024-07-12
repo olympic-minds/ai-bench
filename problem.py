@@ -1,0 +1,123 @@
+import os
+import subprocess
+import random
+import json
+
+class Problem:
+    IN_KEYWORD = "@IN_{num}"
+    OUT_KEYWORD = "@ANS"
+    
+    INGEN_EXEC_PATH = "bin/ingen.e"
+    SOLUTION_EXEC_PATH = "bin/solution.e"
+    
+    
+    def __init__(self, folder_path=None):
+        self.ingen = ""
+        self.solution = ""
+        self.statement = ""
+        if folder_path:
+            self.read_from_folder(folder_path)
+
+    def read_from_folder(self, folder_path):
+        ingen_path = os.path.join(folder_path, 'gen.cpp')
+        solution_path = os.path.join(folder_path, 'solution.cpp')
+        statement_path = os.path.join(folder_path, 'problem-statement.md')
+
+        with open(ingen_path, 'r') as ingen_file:
+            self.ingen = ingen_file.read()
+            
+        with open(solution_path, 'r') as solution_file:
+            self.solution = solution_file.read()
+        
+        with open(statement_path, 'r') as statement_file:
+            self.statement = statement_file.read()
+    
+    @staticmethod
+    def compile_cpp(code, executable):
+        compile_command = ["g++", "-o", executable, "-x", "c++", "-"]
+        process = subprocess.Popen(compile_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        _, stderr = process.communicate(input=code.encode())
+
+        if process.returncode != 0:
+            print("Compilation failed with the following error:")
+            print(stderr.decode())
+            return False
+        return True
+        
+
+    def generate_test(self, size, random_seed, format):
+        run_command = ["./" + Problem.INGEN_EXEC_PATH]
+        process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate(input=f"{size} {random_seed} {format}\n".encode())
+
+        if process.returncode != 0:
+            print(f"Ingen execution failed (return code: {process.returncode}) with the following error:")
+            print(stderr.decode())
+            return
+    
+        return stdout.decode()
+    
+    def get_output(self, test):
+        run_command = ["./" + Problem.SOLUTION_EXEC_PATH]
+        process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate(input=test.encode())
+
+        if process.returncode != 0:
+            print(f"Solution execution failed (return code: {process.returncode}) with the following error:")
+            print(stderr.decode())
+            return
+    
+        return stdout.decode()
+        
+    def generate_prompt(self, size):
+        if not Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH) or not Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH):
+            return None, None
+        
+        random_seed = random.randint(0, 10000)
+        test_prompt = self.generate_test(size, random_seed, 0)
+        if test_prompt is None:
+            return None, None
+        test_prompt = test_prompt.split('\n')
+        test_out = self.generate_test(size, random_seed, 1)
+        # print("test_prompt: ", test_prompt)
+        # print("test_out: ", test_out)
+        if test_out is None:
+            return None, None
+        output = self.get_output(test_out)
+        if output is None:
+            return None, None
+        prompt = self.statement
+        for i, t in enumerate(test_prompt):
+            prompt = prompt.replace(Problem.IN_KEYWORD.format(num = i+1), t)
+        prompt = prompt.replace(Problem.OUT_KEYWORD, "@ANS")
+        return prompt, output.replace(' ', '').replace('\n', '')
+
+    def to_dict(self):
+        return {
+            'ingen': self.ingen,
+            'solution': self.solution,
+            'statement': self.statement
+        }
+
+    @staticmethod
+    def from_dict(data):
+        problem = Problem()
+        problem.ingen = data['ingen']
+        problem.solution = data['solution']
+        problem.statement = data['statement']
+        return problem
+
+    @staticmethod
+    def write_problems_to_jsonl_file(problems, file_path):
+        with open(file_path, 'w') as jsonl_file:
+            for problem in problems:
+                jsonl_file.write(json.dumps(problem.to_dict()) + '\n')
+
+    @staticmethod
+    def read_problems_from_jsonl_file(file_path):
+        problems = []
+        with open(file_path, 'r') as jsonl_file:
+            for line in jsonl_file:
+                problem_dict = json.loads(line.strip())
+                problems.append(Problem.from_dict(problem_dict))
+        return problems
