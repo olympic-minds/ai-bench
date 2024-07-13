@@ -2,13 +2,14 @@ import os
 import subprocess
 import random
 import json
+import hashlib
 
 class Problem:
     IN_KEYWORD = "@IN_{num}"
     OUT_KEYWORD = "@ANS"
     
-    INGEN_EXEC_PATH = "bin/ingen.e"
-    SOLUTION_EXEC_PATH = "bin/solution.e"
+    INGEN_EXEC_PATH = "./bin/ingen_{sum}.e"
+    SOLUTION_EXEC_PATH = "./bin/solution_{sum}.e"
     
     
     def __init__(self, folder_path=None):
@@ -33,7 +34,10 @@ class Problem:
             self.statement = statement_file.read()
     
     @staticmethod
-    def compile_cpp(code, executable):
+    def compile_cpp(code: str, executable: str):
+        executable = executable.format(sum = hashlib.md5(code.encode('utf-8')).hexdigest())
+        if os.path.isfile(executable):
+            return executable
         compile_command = ["g++", "-o", executable, "-x", "c++", "-"]
         process = subprocess.Popen(compile_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, stderr = process.communicate(input=code.encode())
@@ -41,12 +45,12 @@ class Problem:
         if process.returncode != 0:
             print("Compilation failed with the following error:")
             print(stderr.decode())
-            return False
-        return True
+            return
+        return executable
         
 
-    def generate_test(self, size, random_seed, format):
-        run_command = ["./" + Problem.INGEN_EXEC_PATH]
+    def generate_test(self, size: int, random_seed: int, format: int):
+        run_command = [self.ingen_bin]
         process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate(input=f"{size} {random_seed} {format}\n".encode())
 
@@ -57,8 +61,8 @@ class Problem:
     
         return stdout.decode()
     
-    def get_output(self, test):
-        run_command = ["./" + Problem.SOLUTION_EXEC_PATH]
+    def get_output(self, test: str):
+        run_command = [self.solution_bin]
         process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate(input=test.encode())
 
@@ -75,8 +79,10 @@ class Problem:
         output = output.removeprefix('```cpp').removeprefix('```cpp').removesuffix('```')
         return output
         
-    def generate_prompt(self, size):
-        if not Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH) or not Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH):
+    def generate_prompt(self, size: int):
+        self.ingen_bin = Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH)
+        self.solution_bin = Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH)
+        if self.ingen_bin is None or self.solution_bin is None:
             return None, None
         
         random_seed = random.randint(0, 10000)
