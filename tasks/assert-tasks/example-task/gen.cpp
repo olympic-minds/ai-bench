@@ -1,4 +1,6 @@
 #include <bits/stdc++.h>
+#include "testlib/testlib.h"
+
 using namespace std;
 
 int numberOfNodes, seed;
@@ -6,11 +8,6 @@ bool printForSolution;
 
 string generate_graph();
 int generate_int();
-
-int randomInt(int a, int b) {
-    assert(a <= b);
-    return a + rand() % (b - a + 1);
-}
 
 int maxEdges(int nodes) {
     assert(nodes >= 0);
@@ -53,13 +50,13 @@ void printGraph(int numberOfNodes, set<pair<int,int>>& edges, bool forSolution) 
 
 int main() {
     cin >> numberOfNodes >> seed >> printForSolution;
-    srand(seed);
+    registerGen(seed);
     assert(numberOfNodes > 0);
-    int numberOfEdges = randomInt(0, maxEdges(numberOfNodes));
+    int numberOfEdges = rnd.next(0, maxEdges(numberOfNodes));
     set<pair<int,int>> edges;
     while (edges.size() < numberOfEdges) {
-        int from = randomInt(0, numberOfNodes - 1);
-        int to = randomInt(0, numberOfNodes - 1);
+        int from = rnd.next(0, numberOfNodes - 1);
+        int to = rnd.next(0, numberOfNodes - 1);
         if (from > to) {
             swap(from, to);
         }
