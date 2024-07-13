@@ -68,6 +68,12 @@ class Problem:
             return
     
         return stdout.decode()
+    
+    @staticmethod
+    def clean_output(output: str):
+        output = output.replace(' ', '').replace('\n', '')
+        output = output.removeprefix('```cpp').removeprefix('```cpp').removesuffix('```')
+        return output
         
     def generate_prompt(self, size):
         if not Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH) or not Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH):
@@ -90,7 +96,7 @@ class Problem:
         for i, t in enumerate(test_prompt):
             prompt = prompt.replace(Problem.IN_KEYWORD.format(num = i+1), t)
         prompt = prompt.replace(Problem.OUT_KEYWORD, "@ANS")
-        return prompt, output.replace(' ', '').replace('\n', '')
+        return prompt, Problem.clean_output(output)
 
     def to_dict(self):
         return {
