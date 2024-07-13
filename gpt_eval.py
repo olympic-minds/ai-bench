@@ -38,6 +38,9 @@ def main():
     
     load_dotenv()
     OPENAI_KEY = os.getenv('OPENAI_KEY')
+    if OPENAI_KEY == None:
+        print("missing OPENAI_KEY env variable")
+        return 1
     client = openai.OpenAI(api_key=OPENAI_KEY)
     
     NUM_TESTS = 10
