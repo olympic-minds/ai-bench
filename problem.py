@@ -98,7 +98,7 @@ class Problem:
         output = output.removeprefix('```cpp').removeprefix('```cpp').removesuffix('```')
         return output
         
-    def generate_prompt(self, precompiled_stdc_path: str = None):
+    def generate_prompts(self, precompiled_stdc_path: str = None):
         self.ingen_bin = Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH, True, precompiled_stdc_path)
         self.solution_bin = Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH, False, precompiled_stdc_path)
         

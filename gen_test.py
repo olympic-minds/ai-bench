@@ -7,7 +7,7 @@ def main():
     args = parser.parse_args()
     
     problem = Problem(args.path)
-    prompt, output = problem.generate_prompt()
+    prompt, output = problem.generate_prompts()
     print(f"PROMPT: {prompt}")
     print(f"OUTPUT: {output}")
 

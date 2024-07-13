@@ -32,7 +32,7 @@ def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests
     tests = []
     for problem_num, problem in enumerate(problems):
         for test_num in range(num_tests):
-            prompt, output = problem.generate_prompt(precompiled_stdc)
+            prompt, output = problem.generate_prompts(precompiled_stdc)
             if prompt is None or output is None:
                 print("Test generation failed")
                 return
