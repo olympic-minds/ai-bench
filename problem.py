@@ -130,8 +130,6 @@ class Problem:
             modify_filename=get_prompt_filename
         )
         
-        
-        
         def get_out_filename(in_filename: str) -> str:
             base, _ = os.path.splitext(in_filename)
             return f'{base}.out'
