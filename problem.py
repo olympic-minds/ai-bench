@@ -114,13 +114,13 @@ class Problem:
         return problem
 
     @staticmethod
-    def write_problems_to_jsonl_file(problems, file_path):
+    def write_problems_to_jsonl_file(problems, file_path: str):
         with open(file_path, 'w') as jsonl_file:
             for problem in problems:
                 jsonl_file.write(json.dumps(problem.to_dict()) + '\n')
 
     @staticmethod
-    def read_problems_from_jsonl_file(file_path):
+    def read_problems_from_jsonl_file(file_path: str):
         problems = []
         with open(file_path, 'r') as jsonl_file:
             for line in jsonl_file:
