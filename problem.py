@@ -34,6 +34,11 @@ class Problem:
     
     @staticmethod
     def compile_cpp(code, executable):
+        directory = os.path.dirname(executable)
+        
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
         compile_command = ["g++", "-o", executable, "-x", "c++", "-"]
         process = subprocess.Popen(compile_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, stderr = process.communicate(input=code.encode())
