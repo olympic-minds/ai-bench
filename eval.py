@@ -27,12 +27,12 @@ def evaluate_test(problem_id: str, client: Chat, prompt: str, expected_output: s
         print(f"OUTPUT {expected_output} RESPONSE: {response}")
     return problem_id, int(response == expected_output)
 
-def eval_chat(problems: List[Problem], client: Chat, size: int, num_workers: int, num_tests: int, num_prompts: int, verbose: bool = False, precompiled_stdc: str = None):
+def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests: int, num_prompts: int, verbose: bool = False, precompiled_stdc: str = None):
     print("Generating tests...")
     tests = []
     for problem_num, problem in enumerate(problems):
         for test_num in range(num_tests):
-            prompt, output = problem.generate_prompt(size, precompiled_stdc)
+            prompt, output = problem.generate_prompt(precompiled_stdc)
             if prompt is None or output is None:
                 print("Test generation failed")
                 return
@@ -76,7 +76,6 @@ def main():
     parser = argparse.ArgumentParser(description="Evaluate model on a problem")
     parser.add_argument('path', type=str, help="Path to problem or directory of problems")
     parser.add_argument('model', type=ChatModel, help="Model gpt/gemini")
-    parser.add_argument('size', type=int, help="Size of the input")
     parser.add_argument('--tests', '-t', type=int, help="Number of generated tests",  default=5)
     parser.add_argument('--prompts', '-p', type=int, help="Number of prompts for evert test case", default=5)
     parser.add_argument('--workers', '-w', type=int, help="Max number of workers",  default=5)
@@ -88,7 +87,7 @@ def main():
     
     problems = Problem.read_problems_from_dir(args.path) if args.folder else [Problem(args.path)]
     client = get_chat(args.model)
-    results = eval_chat(problems, client, args.size, args.workers, args.tests, args.prompts, args.verbose, args.precompiled_stdc)
+    results = eval_chat(problems, client, args.workers, args.tests, args.prompts, args.verbose, args.precompiled_stdc)
     for id, accuracy in results.items():
         print(f"PROBLEM {id} ACCURACY: {accuracy}")
    
