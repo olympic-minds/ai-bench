@@ -2,4 +2,5 @@ bin/*
 __pycache__/*
 .env
 venv/
+.venv/
 .vscode/
