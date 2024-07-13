@@ -2,12 +2,31 @@
 using namespace std;
 
 
+
+void shortDifferentPaths(int testNumber) {
+
+    // can't have 2 different paths of length 1 or 2
+    int numOfNodes = rnd.next(3, 10); 
+    Graph g1 = Graph::construct_path_graph(numOfNodes);
+    Graph g2 = Graph::construct_path_graph(numOfNodes);
+    while(g1 == g2) {
+        g2 = Graph::construct_path_graph(numOfNodes);
+    }
+
+    string promptIn = g1.toString(Prompt) + "\n" + g2.toString(Prompt); 
+    string promptFilePath = dirs.at("in") + "/" + std::to_string(testNumber) + ".in";
+    printToFile(promptIn, promptFilePath);
+
+    string solutionIn = g1.toString(Prompt) + "\n" + g2.toString(Prompt); 
+    string solutionFilePath = dirs.at("solution-in") + "/" + std::to_string(testNumber) + ".in";
+    printToFile(solutionIn, solutionFilePath);
+}
+
 int main(int argc, char *argv[]) {
-    int n, seed, format;
-    cin>>n>>seed>>format;
+    int seed;
+    cin>>seed;
     registerGen(seed);
-    Graph g1 = Graph::construct_path_graph(n);
-    g1.print(format);
-    Graph g2 = Graph::construct_path_graph(n);
-    g2.print(format);
+    setupDirectories();
+
+    shortDifferentPaths(0);
 }

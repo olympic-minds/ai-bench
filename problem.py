@@ -4,6 +4,8 @@ import random
 import json
 import hashlib
 
+from util import process_files
+
 class Problem:
     IN_KEYWORD = "@IN_{num}"
     OUT_KEYWORD = "@ANS"
@@ -14,12 +16,11 @@ class Problem:
     TESTLIB_PATH = "testlib/testlib.h"
     READWRITER_PATH = "testlib/readwriter.h"
     
-    
     def __init__(self, folder_path=None):
         self.ingen = ""
         self.solution = ""
         self.statement = ""
-        self.id = folder_path
+        self.id = folder_path # todo: consider security of this bit
         if folder_path:
             self.read_from_folder(folder_path)
 
@@ -67,19 +68,19 @@ class Problem:
         return executable
         
 
-    def generate_test(self, size: int, random_seed: int, format: int):
+    def generate_tests(self, seed: int) -> bool:
         run_command = [self.ingen_bin]
-        process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate(input=f"{size} {random_seed} {format}\n".encode())
+        process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate(input=f"{seed}\n".encode())
 
         if process.returncode != 0:
             print(f"Ingen execution failed (return code: {process.returncode}) with the following error:")
             print(stderr.decode())
-            return
+            return False
     
-        return stdout.decode()
+        return True
     
-    def get_output(self, test: str):
+    def generate_solution(self, test: str) -> str:
         run_command = [self.solution_bin]
         process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate(input=test.encode())
@@ -87,7 +88,7 @@ class Problem:
         if process.returncode != 0:
             print(f"Solution execution failed (return code: {process.returncode}) with the following error:")
             print(stderr.decode())
-            return
+            return ""
     
         return stdout.decode()
     
@@ -105,23 +106,48 @@ class Problem:
             return None, None
         
         random_seed = random.randint(0, 10000)
-        test_prompt = self.generate_test(size, random_seed, 0)
-        if test_prompt is None:
+        if(not self.generate_tests(random_seed)):
             return None, None
-        test_prompt = test_prompt.split('\n')
-        test_out = self.generate_test(size, random_seed, 1)
-        # print("test_prompt: ", test_prompt)
-        # print("test_out: ", test_out)
-        if test_out is None:
-            return None, None
-        output = self.get_output(test_out)
-        if output is None:
-            return None, None
-        prompt = self.statement
-        for i, t in enumerate(test_prompt):
-            prompt = prompt.replace(Problem.IN_KEYWORD.format(num = i+1), t)
-        prompt = prompt.replace(Problem.OUT_KEYWORD, "@ANS")
-        return prompt, Problem.clean_output(output)
+        
+        def generate_prompt(input: str) -> str:
+            prompt = self.statement
+            for i, input_line in enumerate(input.splitlines()):
+                prompt = prompt.replace(Problem.IN_KEYWORD.format(num = i+1), input_line)
+            return prompt.replace(Problem.OUT_KEYWORD, "@ANS")
+
+        def get_prompt_filename(in_filename: str) -> str:
+            base, _ = os.path.splitext(in_filename)
+            return f'prompt_{base}.txt'
+
+        in_directory = f'{self.id}/in'
+        prompt_directory = f'{self.id}/prompts'
+
+        # generate prompts from ins, which were generated into in/ directory by gen.cpp
+        process_files(
+            input_dir=in_directory, 
+            output_dir=prompt_directory, 
+            modify_content=generate_prompt, 
+            modify_filename=get_prompt_filename
+        )
+        
+        
+        
+        def get_out_filename(in_filename: str) -> str:
+            base, _ = os.path.splitext(in_filename)
+            return f'{base}.out'
+
+        solution_in_directory = f'{self.id}/solution-in'
+        solution_out_in_directory = f'{self.id}/out'
+        
+        # generate solutions from ins, which were generated into solution-in/ directory by gen.cpp
+        process_files(
+            input_dir=solution_in_directory, 
+            output_dir=solution_out_in_directory, 
+            modify_content=self.generate_solution,
+            modify_filename=get_out_filename
+        )
+        
+        return
 
     def to_dict(self):
         return {
