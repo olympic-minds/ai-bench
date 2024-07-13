@@ -1,3 +1,4 @@
+from typing import List
 from problem import Problem
 from chat import Chat
 from gemini import Gemini
@@ -26,7 +27,7 @@ def evaluate_test(problem_id: str, client: Chat, prompt: str, expected_output: s
         print(f"OUTPUT {expected_output} RESPONSE: {response}")
     return problem_id, int(response == expected_output)
 
-def eval_chat(problems, client: Chat, size: int, num_workers: int, num_tests: int, num_prompts: int, verbose: bool = False, precompiled_stdc: str = None):
+def eval_chat(problems: List[Problem], client: Chat, size: int, num_workers: int, num_tests: int, num_prompts: int, verbose: bool = False, precompiled_stdc: str = None):
     print("Generating tests...")
     tests = []
     for problem_num, problem in enumerate(problems):
