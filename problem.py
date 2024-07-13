@@ -34,7 +34,7 @@ class Problem:
         with open(statement_path, 'r') as statement_file:
             self.statement = statement_file.read()
 
-
+    @staticmethod
     def compile_cpp(code: str, executable: str):
         executable = executable.format(sum = hashlib.md5(code.encode('utf-8')).hexdigest())
         if os.path.isfile(executable):
