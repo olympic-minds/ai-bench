@@ -13,12 +13,12 @@ void shortDifferentPaths(int testNumber) {
         g2 = Graph::construct_path_graph(numOfNodes);
     }
 
-    string promptIn = g1.toString(Prompt) + "\n" + g2.toString(Prompt); 
-    string promptFilePath = dirs.at("in") + "/" + std::to_string(testNumber) + ".in";
+    string promptIn = g1.toString(Prompt) + g2.toString(Prompt); 
+    string promptFilePath = dirs.at("promptInputDirectory") + "/" + std::to_string(testNumber) + ".in";
     printToFile(promptIn, promptFilePath);
 
-    string solutionIn = g1.toString(Prompt) + "\n" + g2.toString(Prompt); 
-    string solutionFilePath = dirs.at("solution-in") + "/" + std::to_string(testNumber) + ".in";
+    string solutionIn = g1.toString(Solution) + g2.toString(Solution); 
+    string solutionFilePath = dirs.at("solutionInputDirectory") + "/" + std::to_string(testNumber) + ".in";
     printToFile(solutionIn, solutionFilePath);
 }
 

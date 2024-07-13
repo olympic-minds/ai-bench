@@ -10,8 +10,8 @@ class Problem:
     IN_KEYWORD = "@IN_{num}"
     OUT_KEYWORD = "@ANS"
     
-    INGEN_EXEC_PATH = "./bin/ingen_{sum}.e"
-    SOLUTION_EXEC_PATH = "./bin/solution_{sum}.e"
+    INGEN_EXEC_PATH = "bin/ingen_{sum}.e"
+    SOLUTION_EXEC_PATH = "bin/solution_{sum}.e"
     
     TESTLIB_PATH = "testlib/testlib.h"
     READWRITER_PATH = "testlib/readwriter.h"
@@ -20,8 +20,8 @@ class Problem:
         "in": "in",
         "solution-in": "solution-in",
         "out": "out",
-        "prompt-in": "prompt-in",
-        "prompt-out": "prompt-out"
+        "prompt_in": "prompt-in",
+        "prompt_out": "prompt-out"
     }
     
     def __init__(self, folder_path=None):
@@ -47,12 +47,14 @@ class Problem:
             self.statement = statement_file.read()
 
     @staticmethod
-    def compile_cpp(code: str, executable: str, include_testlib: bool = False, precompiled_stdc_path: str = None):
+    def compile_cpp(code: str, executable: str, problem_path: str, include_testlib: bool = False, precompiled_stdc_path: str = None):
         executable = executable.format(sum = hashlib.md5(code.encode('utf-8')).hexdigest())
         if os.path.isfile(executable):
             return executable
         
-        directory = os.path.dirname(executable)
+        outFile = problem_path + "/" + executable
+        
+        directory = os.path.dirname(outFile)
         if not os.path.exists(directory):
             os.makedirs(directory)
         
@@ -64,7 +66,7 @@ class Problem:
         if precompiled_stdc_path is not None:
             compile_command += ["-include", precompiled_stdc_path]
             
-        compile_command += ["-o", executable, "-x", "c++","-"]
+        compile_command += ["-o", outFile, "-x", "c++","-"]
         
         process = subprocess.Popen(compile_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, stderr = process.communicate(input=code.encode())
@@ -78,7 +80,7 @@ class Problem:
 
     def generate_tests(self, seed: int) -> bool:
         run_command = [self.ingen_bin]
-        process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.id)
         stdout, stderr = process.communicate(input=f"{seed}\n".encode())
 
         if process.returncode != 0:
@@ -90,7 +92,7 @@ class Problem:
     
     def generate_solution(self, test: str) -> str:
         run_command = [self.solution_bin]
-        process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.id)
         stdout, stderr = process.communicate(input=test.encode())
 
         if process.returncode != 0:
@@ -107,8 +109,8 @@ class Problem:
         return output
         
     def generate_prompts(self, precompiled_stdc_path: str = None) -> bool:
-        self.ingen_bin = Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH, True, precompiled_stdc_path)
-        self.solution_bin = Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH, False, precompiled_stdc_path)
+        self.ingen_bin = Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH, self.id, True, precompiled_stdc_path)
+        self.solution_bin = Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH, self.id, False, precompiled_stdc_path)
         
         if self.ingen_bin is None or self.solution_bin is None:
             return False
@@ -128,8 +130,16 @@ class Problem:
             return f'prompt_{base}.txt'
 
         in_directory = f'{self.id}/in'
-        prompt_directory = f'{self.id}/{self.dirs["prompt_in"]}'
+        directory = os.path.dirname(in_directory)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
+
+        prompt_directory = f'{self.id}/{self.dirs["prompt_in"]}'
+        directory = os.path.dirname(prompt_directory)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
         # generate prompts from ins, which were generated into in/ directory by gen.cpp
         process_files(
             input_dir=in_directory, 

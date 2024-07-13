@@ -4,3 +4,12 @@ __pycache__/*
 venv/
 .venv/
 .vscode/
+
+
+**/in
+**/out
+**/bin/ingen**
+**/bin/solution**
+**/solution-in
+**/prompt-in
+**/prompt-out

@@ -26,8 +26,8 @@ def get_chat(chatModel: ChatModel):
 # evaluates the model. Returns problem_id, the number of successful answers and the total number of problems
 def evaluate_test(problem_path: str, client: Chat) -> tuple[str, int, int]:
     prompt_in_dir = f"{problem_path}/{Problem.dirs['prompt_in']}"
-    prompt_out_dir = f"{problem_path}/{Problem.dirs['prompt_in']}"
-    solution_out_dir = f"{problem_path}/{Problem.dirs['prompt_in']}"
+    prompt_out_dir = f"{problem_path}/{Problem.dirs['prompt_out']}"
+    solution_out_dir = f"{problem_path}/{Problem.dirs['out']}"
     
     def fetch_model_response(prompt: str) -> str:
         response = client.prompt(SYSTEM_PROMPT, prompt)
@@ -48,9 +48,16 @@ def evaluate_test(problem_path: str, client: Chat) -> tuple[str, int, int]:
     if len(prompt_outs) != len(solution_outs):
         raise ValueError(f"Directories '{prompt_outs}' and '{solution_outs}' do not have the same number of .out files.")
 
+    counter = 0
+    for prompt_out_filename, solution_out_filename in zip(sorted(prompt_outs), sorted(solution_outs)):
+        a = open(os.path.join(prompt_out_dir, prompt_out_filename), 'r').read()
+        b = open(os.path.join(solution_out_dir, solution_out_filename), 'r').read()
+        if a == b:
+            counter += 1
+
     return problem_path, \
         sum(1 for prompt_out_filename, solution_out_filename in zip(sorted(prompt_outs), sorted(solution_outs))
-            if open(os.path.join(prompt_outs, prompt_out_filename), 'r').read() == open(os.path.join(solution_outs, solution_out_filename), 'r').read()),  \
+            if open(os.path.join(prompt_out_dir, prompt_out_filename), 'r').read() == open(os.path.join(solution_out_dir, solution_out_filename), 'r').read()),  \
         len(prompt_outs)
 
 
@@ -63,24 +70,23 @@ def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests
                 print("Test generation failed")
                 return
         
-    results = Dict[str, Tuple[int, int]]
+    results: Dict[str, Tuple[int, int]] = {}
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
         futures = []
 
         for problem in problems:
-            future = executor.submit(evaluate_test, (problem.id, client))
+            future = executor.submit(evaluate_test, problem.id, client)
             futures.append(future)
 
         print("Evalutaing model...")
         for future in tqdm(as_completed(futures), total=len(futures)):
-            problem_id, result = future.result()
-            results[problem_id] = result
+            problem_id, score, total = future.result()
+            results[problem_id] = (score, total)
        
     if verbose:
         for id, correct in results.items():
-            if isinstance(correct, Tuple[int, int]):
-                print(f"PROBLEM {id} CORRECT: {correct[0]}/{correct[1]}")
-    return {id: correct[0]/correct[1] if isinstance(correct, Tuple[int, int]) else 0 for id, correct in results.items()}
+            print(f"PROBLEM {id} CORRECT: {correct[0]}/{correct[1]}")
+    return {id: correct[0]/correct[1] for id, correct in results.items()}
     
 
 import argparse
