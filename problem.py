@@ -15,6 +15,14 @@ class Problem:
     
     TESTLIB_PATH = "testlib/testlib.h"
     READWRITER_PATH = "testlib/readwriter.h"
+
+    dirs = {
+        "in": "in",
+        "solution-in": "solution-in",
+        "out": "out",
+        "prompt-in": "prompt-in",
+        "prompt-out": "prompt-out"
+    }
     
     def __init__(self, folder_path=None):
         self.ingen = ""
@@ -98,16 +106,16 @@ class Problem:
         output = output.removeprefix('```cpp').removeprefix('```cpp').removesuffix('```')
         return output
         
-    def generate_prompts(self, precompiled_stdc_path: str = None):
+    def generate_prompts(self, precompiled_stdc_path: str = None) -> bool:
         self.ingen_bin = Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH, True, precompiled_stdc_path)
         self.solution_bin = Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH, False, precompiled_stdc_path)
         
         if self.ingen_bin is None or self.solution_bin is None:
-            return None, None
+            return False
         
         random_seed = random.randint(0, 10000)
         if(not self.generate_tests(random_seed)):
-            return None, None
+            return False
         
         def generate_prompt(input: str) -> str:
             prompt = self.statement
@@ -120,7 +128,7 @@ class Problem:
             return f'prompt_{base}.txt'
 
         in_directory = f'{self.id}/in'
-        prompt_directory = f'{self.id}/prompts'
+        prompt_directory = f'{self.id}/{self.dirs["prompt_in"]}'
 
         # generate prompts from ins, which were generated into in/ directory by gen.cpp
         process_files(
@@ -145,7 +153,7 @@ class Problem:
             modify_filename=get_out_filename
         )
         
-        return
+        return True
 
     def to_dict(self):
         return {
