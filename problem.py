@@ -11,8 +11,8 @@ class Problem:
     INGEN_EXEC_PATH = "./bin/ingen_{sum}.e"
     SOLUTION_EXEC_PATH = "./bin/solution_{sum}.e"
     
-    TESTLIB_PATH = "./testlib/testlib.h"
-    READWRITER_PATH = "./testlib/readwriter.h"
+    TESTLIB_PATH = "testlib/testlib.h"
+    READWRITER_PATH = "testlib/readwriter.h"
     
     
     def __init__(self, folder_path=None):
@@ -38,7 +38,7 @@ class Problem:
             self.statement = statement_file.read()
 
     @staticmethod
-    def compile_cpp(code: str, executable: str):
+    def compile_cpp(code: str, executable: str, include_testlib: bool = False, precompiled_stdc_path: str = None):
         executable = executable.format(sum = hashlib.md5(code.encode('utf-8')).hexdigest())
         if os.path.isfile(executable):
             return executable
@@ -47,7 +47,16 @@ class Problem:
         if not os.path.exists(directory):
             os.makedirs(directory)
         
-        compile_command = ["g++", "-std=c++20", "-o", executable, Problem.TESTLIB_PATH, Problem.READWRITER_PATH, "-x", "c++","-"]
+        compile_command = ["g++", "-std=c++20"]
+        
+        if include_testlib:
+            compile_command += ["-include", Problem.TESTLIB_PATH, "-include", Problem.READWRITER_PATH]
+            
+        if precompiled_stdc_path is not None:
+            compile_command += ["-include", precompiled_stdc_path]
+            
+        compile_command += ["-o", executable, "-x", "c++","-"]
+        
         process = subprocess.Popen(compile_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, stderr = process.communicate(input=code.encode())
 
@@ -88,9 +97,10 @@ class Problem:
         output = output.removeprefix('```cpp').removeprefix('```cpp').removesuffix('```')
         return output
         
-    def generate_prompt(self, size: int):
-        self.ingen_bin = Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH)
-        self.solution_bin = Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH)
+    def generate_prompt(self, size: int, precompiled_stdc_path: str = None):
+        self.ingen_bin = Problem.compile_cpp(self.ingen, Problem.INGEN_EXEC_PATH, True, precompiled_stdc_path)
+        self.solution_bin = Problem.compile_cpp(self.solution, Problem.SOLUTION_EXEC_PATH, False, precompiled_stdc_path)
+        
         if self.ingen_bin is None or self.solution_bin is None:
             return None, None
         
@@ -100,8 +110,8 @@ class Problem:
             return None, None
         test_prompt = test_prompt.split('\n')
         test_out = self.generate_test(size, random_seed, 1)
-        print("test_prompt: ", test_prompt)
-        print("test_out: ", test_out)
+        # print("test_prompt: ", test_prompt)
+        # print("test_out: ", test_out)
         if test_out is None:
             return None, None
         output = self.get_output(test_out)

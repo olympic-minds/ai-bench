@@ -26,12 +26,12 @@ def evaluate_test(problem_id: str, client: Chat, prompt: str, expected_output: s
         print(f"OUTPUT {expected_output} RESPONSE: {response}")
     return problem_id, int(response == expected_output)
 
-def eval_chat(problems, client: Chat, size: int, num_workers: int, num_tests: int, num_prompts: int, verbose: bool = False):
+def eval_chat(problems, client: Chat, size: int, num_workers: int, num_tests: int, num_prompts: int, verbose: bool = False, precompiled_stdc: str = None):
     print("Generating tests...")
     tests = []
     for problem_num, problem in enumerate(problems):
         for test_num in range(num_tests):
-            prompt, output = problem.generate_prompt(size)
+            prompt, output = problem.generate_prompt(size, precompiled_stdc)
             if prompt is None or output is None:
                 print("Test generation failed")
                 return
@@ -79,6 +79,7 @@ def main():
     parser.add_argument('--tests', '-t', type=int, help="Number of generated tests",  default=5)
     parser.add_argument('--prompts', '-p', type=int, help="Number of prompts for evert test case", default=5)
     parser.add_argument('--workers', '-w', type=int, help="Max number of workers",  default=5)
+    parser.add_argument('--precompiled_stdc', '-s', type=str, help="Path to precompiled bits/stdc++ header (without .gch)")
     parser.add_argument('--folder', '-f', action='store_true', help="Path is the path to problems directory")
     parser.add_argument('--verbose', '-v', action='store_true', help="Print prompts and expected outputs")
 
@@ -86,7 +87,7 @@ def main():
     
     problems = Problem.read_problems_from_dir(args.path) if args.folder else [Problem(args.path)]
     client = get_chat(args.model)
-    results = eval_chat(problems, client, args.size, args.workers, args.tests, args.prompts, args.verbose)
+    results = eval_chat(problems, client, args.size, args.workers, args.tests, args.prompts, args.verbose, args.precompiled_stdc)
     for id, accuracy in results.items():
         print(f"PROBLEM {id} ACCURACY: {accuracy}")
    
