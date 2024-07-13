@@ -33,12 +33,18 @@ class Problem:
         
         with open(statement_path, 'r') as statement_file:
             self.statement = statement_file.read()
-    
+
     @staticmethod
     def compile_cpp(code: str, executable: str):
         executable = executable.format(sum = hashlib.md5(code.encode('utf-8')).hexdigest())
         if os.path.isfile(executable):
             return executable
+
+        directory = os.path.dirname(executable)
+        
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
         compile_command = ["g++", "-o", executable, "-x", "c++", "-"]
         process = subprocess.Popen(compile_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, stderr = process.communicate(input=code.encode())
