@@ -40,12 +40,14 @@ class Problem:
     @staticmethod
     def compile_cpp(code: str, executable: str):
         executable = executable.format(sum = hashlib.md5(code.encode('utf-8')).hexdigest())
+        
         if os.path.isfile(executable):
             return executable
         directory = os.path.dirname(executable)
         
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        if os.path.isfile(executable):
+            return executable
+        
         compile_command = ["g++", "-std=c++20", "-o", executable, Problem.TESTLIB_PATH, Problem.READWRITER_PATH, "-x", "c++","-"]
         process = subprocess.Popen(compile_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, stderr = process.communicate(input=code.encode())
