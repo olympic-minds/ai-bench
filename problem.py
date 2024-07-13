@@ -16,6 +16,7 @@ class Problem:
         self.ingen = ""
         self.solution = ""
         self.statement = ""
+        self.id = folder_path
         if folder_path:
             self.read_from_folder(folder_path)
 
@@ -108,7 +109,8 @@ class Problem:
         return {
             'ingen': self.ingen,
             'solution': self.solution,
-            'statement': self.statement
+            'statement': self.statement,
+            'id': self.id
         }
 
     @staticmethod
@@ -117,6 +119,7 @@ class Problem:
         problem.ingen = data['ingen']
         problem.solution = data['solution']
         problem.statement = data['statement']
+        problem.id = data['id']
         return problem
 
     @staticmethod
@@ -132,4 +135,14 @@ class Problem:
             for line in jsonl_file:
                 problem_dict = json.loads(line.strip())
                 problems.append(Problem.from_dict(problem_dict))
+        return problems
+    
+    @staticmethod
+    def read_problems_from_dir(dir_path: str):
+        problems = []
+        for root, dirs, files in os.walk(dir_path):
+            for dir_name in dirs:
+                path = os.path.join(root, dir_name)
+                problem = Problem(path)
+                problems.append(problem)
         return problems

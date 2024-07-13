@@ -9,12 +9,7 @@ def main():
     
     args = parser.parse_args()
     
-    problems = []
-    for root, dirs, files in os.walk(args.problems_folder):
-        for dir_name in dirs:
-            path = os.path.join(root, dir_name)
-            problem = Problem(path)
-            problems.append(problem)
+    problems = Problem.read_problems_from_dir(args.problems_folder)
     Problem.write_problems_to_jsonl_file(problems, args.jsonl_path)
 
 if __name__ == "__main__":
