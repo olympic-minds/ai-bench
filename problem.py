@@ -11,6 +11,9 @@ class Problem:
     INGEN_EXEC_PATH = "./bin/ingen_{sum}.e"
     SOLUTION_EXEC_PATH = "./bin/solution_{sum}.e"
     
+    TESTLIB_PATH = "./testlib/testlib.h"
+    READWRITER_PATH = "./testlib/readwriter.h"
+    
     
     def __init__(self, folder_path=None):
         self.ingen = ""
@@ -39,13 +42,11 @@ class Problem:
         executable = executable.format(sum = hashlib.md5(code.encode('utf-8')).hexdigest())
         if os.path.isfile(executable):
             return executable
-
         directory = os.path.dirname(executable)
         
         if not os.path.exists(directory):
             os.makedirs(directory)
-        
-        compile_command = ["g++", "-o", executable, "-x", "c++", "-"]
+        compile_command = ["g++", "-std=c++20", "-o", executable, Problem.TESTLIB_PATH, Problem.READWRITER_PATH, "-x", "c++","-"]
         process = subprocess.Popen(compile_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         _, stderr = process.communicate(input=code.encode())
 
@@ -98,8 +99,8 @@ class Problem:
             return None, None
         test_prompt = test_prompt.split('\n')
         test_out = self.generate_test(size, random_seed, 1)
-        # print("test_prompt: ", test_prompt)
-        # print("test_out: ", test_out)
+        print("test_prompt: ", test_prompt)
+        print("test_out: ", test_out)
         if test_out is None:
             return None, None
         output = self.get_output(test_out)
