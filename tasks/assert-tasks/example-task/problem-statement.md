@@ -1,4 +1,4 @@
-Make sure you use a valid c++ vector definition.
+Make sure you use a valid c++ vector definition. Only output the values in brackets
 ```cpp
 #include<bits/stdc++.h>
 using namespace std;

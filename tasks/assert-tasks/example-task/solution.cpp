@@ -40,7 +40,7 @@ int main () {
             cout << ",";
         }
     }
-    cout << "}\n";
+    cout << "}";
 
     return 0;
 }
