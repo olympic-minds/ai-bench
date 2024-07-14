@@ -12,4 +12,4 @@ venv/
 **/bin/solution**
 **/solution-in
 **/prompt-in
-**/prompt-out
+**/model-out

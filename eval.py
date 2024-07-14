@@ -41,17 +41,27 @@ def evaluate_test(problem_path: str, client: Chat, num_tests: int) -> tuple[str,
         input_dir=prompt_in_dir,
         output_dir=model_out_dir,
         modify_content=fetch_model_response,
-        modify_filename=lambda filename: [filename]
+        modify_filename=create_additional_files
     )
 
     model_outs = os.listdir(model_out_dir)
     solution_outs = os.listdir(solution_out_dir)
 
-    if len(model_outs) != len(solution_outs):
-        raise ValueError(f"Directories '{model_outs}' and '{solution_outs}' do not have the same number of .out files.")
+    if len(model_outs) != num_tests * len(solution_outs):
+        raise ValueError(f"""Directories '{model_outs}' and '{solution_outs}' have incorrect number of files. 
+                        The number of files in '{model_outs}' should be equal to the number of files in '{solution_outs} multipled by the number of tests (-t parameter)'
+                        """)
+        
+    # makes an array, which has the original elements repeated `num_tests` times.
+    # for example [1, 2, 3] num_tests = 2 -> [1, 1, 2, 2, 3, 3]
+    def model_outs_for_solution_outs(solution_outs):
+        return [out for out in solution_outs for _ in range(num_tests)]
+
+    for model_out_filename, solution_out_filename in zip(sorted(model_outs), sorted(model_outs_for_solution_outs(solution_outs))):
+        print(model_out_filename, solution_out_filename)
 
     return problem_path, \
-        sum(1 for model_out_filename, solution_out_filename in zip(sorted(model_outs), sorted(solution_outs))
+        sum(1 for model_out_filename, solution_out_filename in zip(sorted(model_outs), sorted(model_outs_for_solution_outs(solution_outs)))
             if open(os.path.join(model_out_dir, model_out_filename), 'r').read() == open(os.path.join(solution_out_dir, solution_out_filename), 'r').read()),  \
         len(model_outs)
 

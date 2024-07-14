@@ -25,7 +25,7 @@ def process_files(input_dir: str,
         modified_content_list = modify_content(content)
         modified_filename_list = modify_filename(filename)
         
-        assert(modified_content_list == len(modified_filename_list))
+        assert(len(modified_content_list) == len(modified_filename_list))
             
         for modified_filename, modified_content in zip(modified_filename_list, modified_content_list):
             output_file_path = os.path.join(output_dir, modified_filename)
