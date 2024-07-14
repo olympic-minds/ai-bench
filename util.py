@@ -1,15 +1,15 @@
 import os
-from typing import Callable
+from typing import Callable, List
 
 
 # iterates over files in input_dir.
-# applies modify_content function to the content of the file
-# applies modify_filename function to the filename of the file,
+# calls modify_content function on the content of the file, which returns list of modified contents
+# calls modify_filename function on the filename of the file which returns the list of modified files,
 # prints the new files (with updated content) to the second directory
 def process_files(input_dir: str, 
                   output_dir: str, 
-                  modify_content: Callable[[str], str], 
-                  modify_filename: Callable[[str], str]) -> None:
+                  modify_content: Callable[[str], List[str]], 
+                  modify_filename: Callable[[str], List[str]]) -> None:
 
     os.makedirs(output_dir, exist_ok = True)
     
@@ -22,10 +22,13 @@ def process_files(input_dir: str,
         with open(input_file_path, 'r') as f:
             content = f.read()
         
-        modified_content = modify_content(content)
-        modified_filename = modify_filename(filename)
+        modified_content_list = modify_content(content)
+        modified_filename_list = modify_filename(filename)
         
-        output_file_path = os.path.join(output_dir, modified_filename)
-        with open(output_file_path, 'w') as f:
-            f.write(modified_content)
+        assert(modified_content_list == len(modified_filename_list))
+            
+        for modified_filename, modified_content in zip(modified_filename_list, modified_content_list):
+            output_file_path = os.path.join(output_dir, modified_filename)
+            with open(output_file_path, 'w') as f:
+                f.write(modified_content)
         

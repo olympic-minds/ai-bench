@@ -24,22 +24,24 @@ def get_chat(chatModel: ChatModel):
         return ChatGPT()
     
 # evaluates the model. Returns problem_id, the number of successful answers and the total number of problems
-def evaluate_test(problem_path: str, client: Chat) -> tuple[str, int, int]:
+def evaluate_test(problem_path: str, client: Chat, num_tests: int) -> tuple[str, int, int]:
     prompt_in_dir = f"{problem_path}/{Problem.dirs['prompt_in']}"
     prompt_out_dir = f"{problem_path}/{Problem.dirs['prompt_out']}"
     solution_out_dir = f"{problem_path}/{Problem.dirs['out']}"
     
-    def fetch_model_response(prompt: str) -> str:
-        response = client.prompt(SYSTEM_PROMPT, prompt)
-        return Problem.clean_output(response)
-        
+    def fetch_model_response(prompt: str) -> List[str]:
+        return [Problem.clean_output(client.prompt(SYSTEM_PROMPT, prompt)) for _ in range(num_tests)]
     
+    def create_additional_files(filename: str) -> List[str]:
+        name, ext = os.path.splitext(filename)
+        return [f"{name}_{i}{ext}" for i in range(num_tests)]
+            
     
     process_files(
         input_dir=prompt_in_dir,
         output_dir=prompt_out_dir,
         modify_content=fetch_model_response,
-        modify_filename=lambda filename: filename
+        modify_filename=lambda filename: [filename]
     )
 
     prompt_outs = os.listdir(prompt_out_dir)
@@ -67,7 +69,7 @@ def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests
         futures = []
 
         for problem in problems:
-            future = executor.submit(evaluate_test, problem.id, client)
+            future = executor.submit(evaluate_test, problem.id, client, num_tests)
             futures.append(future)
 
         print("Evalutaing model...")

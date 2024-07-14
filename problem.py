@@ -141,8 +141,8 @@ class Problem:
         process_files(
             input_dir=in_directory, 
             output_dir=prompt_directory, 
-            modify_content=generate_prompt, 
-            modify_filename=get_prompt_filename
+            modify_content=lambda content: [generate_prompt(content)], 
+            modify_filename=lambda filename: [get_prompt_filename(filename)]
         )
         
         def get_out_filename(in_filename: str) -> str:
@@ -156,8 +156,8 @@ class Problem:
         process_files(
             input_dir=solution_in_directory, 
             output_dir=solution_out_in_directory, 
-            modify_content=self.generate_solution,
-            modify_filename=get_out_filename
+            modify_content=lambda test_in: [self.generate_solution(test_in)],
+            modify_filename=lambda filename: [get_out_filename(filename)]
         )
         
         return True
