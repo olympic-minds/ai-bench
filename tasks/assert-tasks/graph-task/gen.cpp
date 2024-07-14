@@ -105,7 +105,7 @@ void smallDifferentStarfishes(int testNumber) {
     while (g1 == g2) {
         g2 = Graph::construct_starfish_graph(numOfNodes, maxRayLength, numOfRays);
     }
-    
+
     printGraphsToAppropriateFiles(testNumber, g1, g2);
 }
 
@@ -113,13 +113,9 @@ void smallEqualStarfishes(int testNumber) {
     int numOfNodes = rnd.next(5, 20); 
     int numOfRays = rnd.next(3, 4);
     int maxRayLength = 7; 
-    Graph g1 = Graph::construct_starfish_graph(numOfNodes, maxRayLength, numOfRays);
-    Graph g2 = Graph::construct_starfish_graph(numOfNodes, maxRayLength, numOfRays);
-    while (g1 == g2) {
-        g2 = Graph::construct_starfish_graph(numOfNodes, maxRayLength, numOfRays);
-    }
+    Graph g = Graph::construct_starfish_graph(numOfNodes, maxRayLength, numOfRays);
 
-    printGraphsToAppropriateFiles(testNumber, g1, g2);
+    printGraphsToAppropriateFiles(testNumber, g, g);
 }
 
 int main(int argc, char *argv[]) {
