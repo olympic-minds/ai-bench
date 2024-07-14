@@ -126,7 +126,7 @@ class Problem:
             base, _ = os.path.splitext(in_filename)
             return f'prompt_{base}.txt'
 
-        in_directory = f'{self.id}/{Problem.dirs["solution-in"]}'
+        in_directory = f'{self.id}/{Problem.dirs["in"]}'
         directory = os.path.dirname(in_directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
