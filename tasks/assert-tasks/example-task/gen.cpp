@@ -1,70 +1,93 @@
-#include <bits/stdc++.h>
-#include "testlib/testlib.h"
+#include "testlib/readwriter.h"
 
 using namespace std;
 
-int numberOfNodes, seed;
-bool printForSolution;
+void printGraphToAppropriateFiles(int testNumber, const Graph& g);
 
-string generate_graph();
-int generate_int();
 
-int maxEdges(int nodes) {
-    assert(nodes >= 0);
-    assert(nodes * (nodes - 1) / 2 >= 0);
-    
-    return nodes * (nodes - 1) / 2;
+void testEmptyGraph(int testNumber) {
+    int numOfNodes = rnd.next(5, 10); 
+    printGraphToAppropriateFiles(testNumber, Graph::construct_undirected_clique(numOfNodes));
 }
 
-void printGraph(int numberOfNodes, set<pair<int,int>>& edges, bool forSolution) {
-    if(forSolution) {
-        cout << numberOfNodes << " " << edges.size() << "\n";
-        for(auto edge: edges) {
-            cout << edge.first << " " << edge.second << "\n";
-        }
-    } else { // for prompt
-        cout << "{";
-        vector<int> graph[numberOfNodes];
-        for(auto edge: edges) {
-            graph[edge.first].push_back(edge.second);
-            graph[edge.second].push_back(edge.first);
-        }       
-        for (int i = 0; i < numberOfNodes; i++) {
-            cout << "{";
-            for (int j = 0; j < graph[i].size(); j++) {
-                cout << graph[i][j];
-                if (j != graph[i].size() - 1) {
-                    cout << ",";
-                }
-            }
-            cout << "}";
-            if (i != numberOfNodes - 1) {
-                cout << ",";
-            }
-        }
-        cout << "}\n";
-        cout << numberOfNodes << "\n";
-    }
+void testShortPath(int testNumber) {
+    int numOfNodes = rnd.next(5, 10); 
+    printGraphToAppropriateFiles(testNumber, Graph::construct_path_graph(numOfNodes));
+}
+
+void testMultipleShortPaths(int testNumber) {
+    int numOfNodes = rnd.next(8, 15);
+    int numOfPaths = rnd.next(3, 6); 
+    printGraphToAppropriateFiles(testNumber, Graph::construct_path_graph(numOfNodes, numOfPaths));
+}
+
+void testSmallClique(int testNumber) {
+    int numOfNodes = rnd.next(5, 10);
+
+    printGraphToAppropriateFiles(testNumber, Graph::construct_undirected_clique(numOfNodes));
+}
+
+void testTree(int testNumber) {
+    int numOfNodes = rnd.next(5, 10);
+
+    printGraphToAppropriateFiles(testNumber, Graph::construct_tree_graph(numOfNodes));
+}
+
+void testForrest(int testNumber) {
+    int numOfNodes = rnd.next(10, 15);
+    int numberOfTrees = rnd.next(3, 4);
+    printGraphToAppropriateFiles(testNumber, Graph::construct_forest_graph(numOfNodes, numberOfTrees));
+}
+
+void testShallowForrest(int testNumber) {
+    int numOfNodes = rnd.next(10, 15);
+    int numberOfTrees = rnd.next(3, 4);
+    printGraphToAppropriateFiles(testNumber, Graph::construct_shallow_forest_graph(numOfNodes, numberOfTrees));
+}
+
+void testStarfish(int testNumber) {
+    int numOfNodes = rnd.next(5, 20); 
+    int numOfRays = rnd.next(3, 4);
+    int maxRayLength = 7; 
+
+    printGraphToAppropriateFiles(testNumber, Graph::construct_starfish_graph(numOfNodes, numOfRays, maxRayLength));
+}
+
+void testSparseGraph(int testNumber) {
+    int numOfNodes = rnd.next(10, 15);
+    int numberOfTrees = rnd.next(3, 4);
+    printGraphToAppropriateFiles(testNumber, Graph::construct_sparse_graph(numOfNodes));
 }
 
 
 int main() {
-    cin >> numberOfNodes >> seed >> printForSolution;
+    int seed;
+    cin>>seed;
     registerGen(seed);
-    assert(numberOfNodes > 0);
-    int numberOfEdges = rnd.next(0, maxEdges(numberOfNodes));
-    set<pair<int,int>> edges;
-    while (edges.size() < numberOfEdges) {
-        int from = rnd.next(0, numberOfNodes - 1);
-        int to = rnd.next(0, numberOfNodes - 1);
-        if (from > to) {
-            swap(from, to);
-        }
-        if (from == to) continue;
-        
-        edges.insert({ from, to });
-    }
-    printGraph(numberOfNodes, edges, printForSolution);
+    setupDirectories();
 
-    // cout << generate_graph(size, seed) << "\n" << generate_int(1, size, seed);
+    std::map<int, std::function<void(int)>> tests = {
+        {0, testEmptyGraph},
+        {1, testShortPath},
+        {2, testMultipleShortPaths},
+        {3, testSmallClique},
+        {4, testForrest},
+        {5, testShallowForrest},
+        // {6, testStarfish},
+        {7, testSparseGraph},
+    };
+
+    for(auto [testId, test]: tests) {
+        test(testId);
+    }
+
+}
+void printGraphToAppropriateFiles(int testNumber, const Graph& g) {
+    string promptIn = g.toString(Prompt) + std::to_string(g.numberOfNodes);
+    string promptFilePath = dirs.at("promptInputDirectory") + "/" + std::to_string(testNumber) + ".in";
+    printToFile(promptIn, promptFilePath);
+
+    string solutionIn = g.toString(Solution);
+    string solutionFilePath = dirs.at("solutionInputDirectory") + "/" + std::to_string(testNumber) + ".in";
+    printToFile(solutionIn, solutionFilePath);
 }
