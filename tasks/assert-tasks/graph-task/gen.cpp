@@ -22,6 +22,19 @@ void shortDifferentPaths(int testNumber) {
     printToFile(solutionIn, solutionFilePath);
 }
 
+void shortEqualPaths(int testNumber) {
+    int numOfNodes = rnd.next(3, 10); 
+    Graph g1 = Graph::construct_path_graph(numOfNodes);
+
+    string promptIn = g1.toString(Prompt) + g1.toString(Prompt); 
+    string promptFilePath = dirs.at("promptInputDirectory") + "/" + std::to_string(testNumber) + ".in";
+    printToFile(promptIn, promptFilePath);
+
+    string solutionIn = g1.toString(Solution) + g1.toString(Solution); 
+    string solutionFilePath = dirs.at("solutionInputDirectory") + "/" + std::to_string(testNumber) + ".in";
+    printToFile(solutionIn, solutionFilePath);
+}
+
 int main(int argc, char *argv[]) {
     int seed;
     cin>>seed;
@@ -29,4 +42,5 @@ int main(int argc, char *argv[]) {
     setupDirectories();
 
     shortDifferentPaths(0);
+    shortEqualPaths(1);
 }

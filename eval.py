@@ -55,7 +55,7 @@ def evaluate_test(problem_path: str, client: Chat) -> tuple[str, int, int]:
 
 
 
-def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests: int, num_prompts: int, verbose: bool = False, precompiled_stdc: str = None):
+def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests: int, verbose: bool = False, precompiled_stdc: str = None):
     print("Generating tests...")
     for problem_num, problem in enumerate(problems):
         for test_num in range(num_tests):
@@ -89,7 +89,6 @@ def main():
     parser.add_argument('path', type=str, help="Path to problem or directory of problems")
     parser.add_argument('model', type=ChatModel, help="Model gpt/gemini")
     parser.add_argument('--tests', '-t', type=int, help="Number of generated tests",  default=5)
-    parser.add_argument('--prompts', '-p', type=int, help="Number of prompts for evert test case", default=5)
     parser.add_argument('--workers', '-w', type=int, help="Max number of workers",  default=5)
     parser.add_argument('--precompiled_stdc', '-s', type=str, help="Path to precompiled bits/stdc++ header (without .gch)")
     parser.add_argument('--folder', '-f', action='store_true', help="Path is the path to problems directory")
@@ -99,7 +98,7 @@ def main():
     
     problems = Problem.read_problems_from_dir(args.path) if args.folder else [Problem(args.path)]
     client = get_chat(args.model)
-    results = eval_chat(problems, client, args.workers, args.tests, args.prompts, args.verbose, args.precompiled_stdc)
+    results = eval_chat(problems, client, args.workers, args.tests, args.verbose, args.precompiled_stdc)
     for id, accuracy in results.items():
         print(f"PROBLEM {id} ACCURACY: {accuracy}")
    
