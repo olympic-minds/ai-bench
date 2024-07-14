@@ -26,7 +26,7 @@ def get_chat(chatModel: ChatModel):
 # evaluates the model. Returns problem_id, the number of successful answers and the total number of problems
 def evaluate_test(problem_path: str, client: Chat, num_tests: int) -> tuple[str, int, int]:
     prompt_in_dir = f"{problem_path}/{Problem.dirs['prompt_in']}"
-    prompt_out_dir = f"{problem_path}/{Problem.dirs['prompt_out']}"
+    model_out_dir = f"{problem_path}/{Problem.dirs['model_out']}"
     solution_out_dir = f"{problem_path}/{Problem.dirs['out']}"
     
     def fetch_model_response(prompt: str) -> List[str]:
@@ -39,21 +39,21 @@ def evaluate_test(problem_path: str, client: Chat, num_tests: int) -> tuple[str,
     
     process_files(
         input_dir=prompt_in_dir,
-        output_dir=prompt_out_dir,
+        output_dir=model_out_dir,
         modify_content=fetch_model_response,
         modify_filename=lambda filename: [filename]
     )
 
-    prompt_outs = os.listdir(prompt_out_dir)
+    model_outs = os.listdir(model_out_dir)
     solution_outs = os.listdir(solution_out_dir)
 
-    if len(prompt_outs) != len(solution_outs):
-        raise ValueError(f"Directories '{prompt_outs}' and '{solution_outs}' do not have the same number of .out files.")
+    if len(model_outs) != len(solution_outs):
+        raise ValueError(f"Directories '{model_outs}' and '{solution_outs}' do not have the same number of .out files.")
 
     return problem_path, \
-        sum(1 for prompt_out_filename, solution_out_filename in zip(sorted(prompt_outs), sorted(solution_outs))
-            if open(os.path.join(prompt_out_dir, prompt_out_filename), 'r').read() == open(os.path.join(solution_out_dir, solution_out_filename), 'r').read()),  \
-        len(prompt_outs)
+        sum(1 for model_out_filename, solution_out_filename in zip(sorted(model_outs), sorted(solution_outs))
+            if open(os.path.join(model_out_dir, model_out_filename), 'r').read() == open(os.path.join(solution_out_dir, solution_out_filename), 'r').read()),  \
+        len(model_outs)
 
 
 

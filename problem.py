@@ -21,7 +21,7 @@ class Problem:
         "solution-in": "solution-in",
         "out": "out",
         "prompt_in": "prompt-in",
-        "prompt_out": "prompt-out"
+        "model_out": "model-out"
     }
     
     def __init__(self, folder_path=None):
