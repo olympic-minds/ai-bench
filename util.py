@@ -3,8 +3,8 @@ from typing import Callable
 
 
 # iterates over files in input_dir.
-# applies content_modifier function to the content of the file
-# applies filename_modifier function to the filename of the file,
+# applies modify_content function to the content of the file
+# applies modify_filename function to the filename of the file,
 # prints the new files (with updated content) to the second directory
 def process_files(input_dir: str, 
                   output_dir: str, 
