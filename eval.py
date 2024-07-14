@@ -57,7 +57,7 @@ def evaluate_test(problem_path: str, client: Chat) -> tuple[str, int, int]:
 
 def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests: int, verbose: bool = False, precompiled_stdc: str = None):
     print("Generating tests...")
-    for test_num in range(num_tests):
+    for problem_num, problem in enumerate(problems):
         if not problem.generate_prompts(precompiled_stdc):
             print("Test generation failed")
             return
