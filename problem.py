@@ -49,11 +49,8 @@ class Problem:
     @staticmethod
     def compile_cpp(code: str, executable: str, problem_path: str, include_testlib: bool = False, precompiled_stdc_path: str = None):
         executable = executable.format(sum = hashlib.md5(code.encode('utf-8')).hexdigest())
-        if os.path.isfile(executable):
-            return executable
-        
-        outFile = problem_path + "/" + executable
-        
+
+        outFile = os.path.join(problem_path, executable)
         directory = os.path.dirname(outFile)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -129,7 +126,7 @@ class Problem:
             base, _ = os.path.splitext(in_filename)
             return f'prompt_{base}.txt'
 
-        in_directory = f'{self.id}/in'
+        in_directory = f'{self.id}/{Problem.dirs["solution-in"]}'
         directory = os.path.dirname(in_directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -152,8 +149,8 @@ class Problem:
             base, _ = os.path.splitext(in_filename)
             return f'{base}.out'
 
-        solution_in_directory = f'{self.id}/solution-in'
-        solution_out_in_directory = f'{self.id}/out'
+        solution_in_directory = f'{self.id}/{Problem.dirs["solution-in"]}'
+        solution_out_in_directory = f'{self.id}/{Problem.dirs["out"]}'
         
         # generate solutions from ins, which were generated into solution-in/ directory by gen.cpp
         process_files(
