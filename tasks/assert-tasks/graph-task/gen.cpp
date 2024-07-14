@@ -74,7 +74,6 @@ void smallDifferentTreeOfDegree2to4(int testNumber) {
         g2 = Graph::construct_tree_of_bounded_degree_graph(numOfNodes, minDegree, maxDegree);
     }
 
-
     printGraphsToAppropriateFiles(testNumber, g1, g2);
 }
 
@@ -86,6 +85,7 @@ void smallDifferentForrests(int testNumber) {
     while (g1 == g2) {
         g2 = Graph::construct_forest_graph(numOfNodes, numOfTrees);
     }
+
     printGraphsToAppropriateFiles(testNumber, g1, g2);
 }
 
@@ -105,6 +105,7 @@ void smallDifferentStarfishes(int testNumber) {
     while (g1 == g2) {
         g2 = Graph::construct_starfish_graph(numOfNodes, maxRayLength, numOfRays);
     }
+    
     printGraphsToAppropriateFiles(testNumber, g1, g2);
 }
 
@@ -117,6 +118,7 @@ void smallEqualStarfishes(int testNumber) {
     while (g1 == g2) {
         g2 = Graph::construct_starfish_graph(numOfNodes, maxRayLength, numOfRays);
     }
+
     printGraphsToAppropriateFiles(testNumber, g1, g2);
 }
 
