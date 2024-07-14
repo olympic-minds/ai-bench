@@ -48,13 +48,6 @@ def evaluate_test(problem_path: str, client: Chat) -> tuple[str, int, int]:
     if len(prompt_outs) != len(solution_outs):
         raise ValueError(f"Directories '{prompt_outs}' and '{solution_outs}' do not have the same number of .out files.")
 
-    counter = 0
-    for prompt_out_filename, solution_out_filename in zip(sorted(prompt_outs), sorted(solution_outs)):
-        a = open(os.path.join(prompt_out_dir, prompt_out_filename), 'r').read()
-        b = open(os.path.join(solution_out_dir, solution_out_filename), 'r').read()
-        if a == b:
-            counter += 1
-
     return problem_path, \
         sum(1 for prompt_out_filename, solution_out_filename in zip(sorted(prompt_outs), sorted(solution_outs))
             if open(os.path.join(prompt_out_dir, prompt_out_filename), 'r').read() == open(os.path.join(solution_out_dir, solution_out_filename), 'r').read()),  \
