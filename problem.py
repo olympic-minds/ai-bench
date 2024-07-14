@@ -116,7 +116,7 @@ class Problem:
             return False
         
         random_seed = random.randint(0, 10000)
-        if(not self.generate_tests(random_seed)):
+        if not self.generate_tests(random_seed):
             return False
         
         def generate_prompt(input: str) -> str:
