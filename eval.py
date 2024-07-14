@@ -57,11 +57,10 @@ def evaluate_test(problem_path: str, client: Chat) -> tuple[str, int, int]:
 
 def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests: int, verbose: bool = False, precompiled_stdc: str = None):
     print("Generating tests...")
-    for problem_num, problem in enumerate(problems):
-        for test_num in range(num_tests):
-            if not problem.generate_prompts(precompiled_stdc):
-                print("Test generation failed")
-                return
+    for test_num in range(num_tests):
+        if not problem.generate_prompts(precompiled_stdc):
+            print("Test generation failed")
+            return
         
     results: Dict[str, Tuple[int, int]] = {}
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
