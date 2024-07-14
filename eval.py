@@ -53,7 +53,7 @@ def evaluate_test(problem_path: str, client: Chat, num_tests: int) -> tuple[str,
                         """)
         
     # makes an array, which has the original elements repeated `num_tests` times.
-    # for example [1, 2, 3] num_tests = 2 -> [1, 1, 2, 2, 3, 3]
+    # for example [out1, out2, out3] num_tests = 2 -> [out1, out1, out2, out2, out3, out3]
     def model_outs_for_solution_outs(solution_outs):
         return [out for out in solution_outs for _ in range(num_tests)]
 
