@@ -79,7 +79,7 @@ void smallDifferentTreeOfDegree2to4(int testNumber) {
 
 void smallDifferentForrests(int testNumber) {
     int numOfNodes = rnd.next(5, 20); 
-    int numOfTrees = rnd.next(3, 5);
+    int numOfTrees = rnd.next(3, min(5, numNodes - 1));
     Graph g1 = Graph::construct_forest_graph(numOfNodes, numOfTrees);
     Graph g2 = Graph::construct_forest_graph(numOfNodes, numOfTrees);
     while (g1 == g2) {
