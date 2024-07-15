@@ -79,7 +79,7 @@ void smallDifferentTreeOfDegree2to4(int testNumber) {
 
 void smallDifferentForrests(int testNumber) {
     int numOfNodes = rnd.next(5, 20); 
-    int numOfTrees = rnd.next(3, min(5, numNodes - 1));
+    int numOfTrees = rnd.next(3, min(5, numOfNodes - 1));
     Graph g1 = Graph::construct_forest_graph(numOfNodes, numOfTrees);
     Graph g2 = Graph::construct_forest_graph(numOfNodes, numOfTrees);
     while (g1 == g2) {
@@ -143,11 +143,14 @@ int main(int argc, char *argv[]) {
 }
 
 void printGraphsToAppropriateFiles(int testNumber, const Graph& g1, const Graph& g2) {
-    string promptIn = g1.toString(Prompt) + g2.toString(Prompt); 
-    string promptFilePath = dirs.at("promptInputDirectory") + "/" + std::to_string(testNumber) + ".in";
-    printToFile(promptIn, promptFilePath);
+    auto [promptInStream, solutionInStream] = setupTest(testNumber); 
 
-    string solutionIn = g1.toString(Solution) + g2.toString(Solution); 
-    string solutionFilePath = dirs.at("solutionInputDirectory") + "/" + std::to_string(testNumber) + ".in";
-    printToFile(solutionIn, solutionFilePath);
+    g1.printTo(promptInStream, Prompt);
+    g2.printTo(promptInStream, Prompt);
+    
+    g1.printTo(solutionInStream, Solution);
+    g2.printTo(solutionInStream, Solution);
+
+    promptInStream.close();
+    solutionInStream.close();
 }
