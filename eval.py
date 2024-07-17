@@ -24,12 +24,14 @@ def get_chat(chatModel: ChatModel):
         return ChatGPT()
     
 # evaluates the model. Returns problem_id, the number of successful answers and the total number of problems
-def evaluate_test(problem_path: str, client: Chat, num_tests: int) -> tuple[str, int, int]:
+def evaluate_test(problem_path: str, client: Chat, num_tests: int, executor: ThreadPoolExecutor | None = None) -> tuple[str, int, int]:
     prompt_in_dir = f"{problem_path}/{Problem.dirs['prompt_in']}"
     model_out_dir = f"{problem_path}/{Problem.dirs['model_out']}"
     solution_out_dir = f"{problem_path}/{Problem.dirs['out']}"
     
     def fetch_model_response(prompt: str) -> List[str]:
+        if executor is not None:
+            return list(executor.map(lambda _: Problem.clean_output(client.prompt(SYSTEM_PROMPT, prompt)), range(num_tests)))
         return [Problem.clean_output(client.prompt(SYSTEM_PROMPT, prompt)) for _ in range(num_tests)]
     
     def create_additional_files(filename: str) -> List[str]:
@@ -79,7 +81,7 @@ def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests
         futures = []
 
         for problem in problems:
-            future = executor.submit(evaluate_test, problem.id, client, num_tests)
+            future = executor.submit(evaluate_test, problem.id, client, num_tests, executor)
             futures.append(future)
 
         print("Evalutaing model...")
