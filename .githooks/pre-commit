@@ -1,0 +1,17 @@
+#!/bin/bash
+
+DISALLOWED=(
+  "DO_NOT_COMMIT"
+  ">>>>>>"
+  "<<<<<<"
+)
+
+for str in "${DISALLOWED[@]}"
+do
+  if git commit -v --dry-run | grep "^+" | grep "$str" >/dev/null 2>&1
+  then
+      echo "Found non-committable string:"
+      git diff --cached --name-only | git grep --cached -nH "$str" | sed 's/^/    /'
+      exit 1
+  fi
+done
