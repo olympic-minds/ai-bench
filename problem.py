@@ -206,7 +206,9 @@ class Problem:
         process_files(
             input_dir=solution_in_directory,
             output_dir=solution_out_in_directory,
-            modify_content=lambda test_in: [self.generate_solution(test_in)],
+            modify_content=lambda test_in: [
+                Problem.clean_output(self.generate_solution(test_in))
+            ],
             modify_filename=lambda filename: [get_out_filename(filename)],
         )
 
