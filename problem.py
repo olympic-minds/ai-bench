@@ -23,13 +23,13 @@ class Problem:
         "prompt_in": "prompt-in",
         "model_out": "model-out"
     }
-    
-    def __init__(self, folder_path=None):
+
+    def __init__(self, folder_path: str = ""):
         self.ingen = ""
         self.solution = ""
         self.statement = ""
         self.id = folder_path # todo: consider security of this bit
-        if folder_path:
+        if folder_path != "":
             self.read_from_folder(folder_path)
 
     def read_from_folder(self, folder_path):
@@ -47,10 +47,13 @@ class Problem:
             self.statement = statement_file.read()
 
     @staticmethod
-    def compile_cpp(code: str, executable: str, problem_path: str, include_testlib: bool = False, precompiled_stdc_path: str = None):
+    def compile_cpp(code: str, executable: str, problem_path: str, include_testlib: bool = False, precompiled_stdc_path: str | None = None) -> str | None:
         executable = executable.format(sum = hashlib.md5(code.encode('utf-8')).hexdigest())
 
         outFile = os.path.join(problem_path, executable)
+        if os.path.isfile(outFile):
+            return executable
+
         directory = os.path.dirname(outFile)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -76,6 +79,9 @@ class Problem:
         
 
     def generate_tests(self, seed: int) -> bool:
+        if self.ingen_bin is None:
+            print("Ingen not compiled")
+            return False
         run_command = [self.ingen_bin]
         process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.id)
         stdout, stderr = process.communicate(input=f"{seed}\n".encode())
@@ -88,6 +94,9 @@ class Problem:
         return True
     
     def generate_solution(self, test: str) -> str:
+        if self.solution_bin is None:
+            print("Solution not compiled")
+            return ""
         run_command = [self.solution_bin]
         process = subprocess.Popen(run_command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.id)
         stdout, stderr = process.communicate(input=test.encode())

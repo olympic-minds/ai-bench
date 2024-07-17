@@ -69,7 +69,7 @@ def evaluate_test(problem_path: str, client: Chat, num_tests: int, executor: Thr
 
 
 
-def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests: int, verbose: bool = False, precompiled_stdc: str = None):
+def eval_chat(problems: List[Problem], client: Chat, num_workers: int, num_tests: int, verbose: bool = False, precompiled_stdc: str | None = None) -> dict[str, float] | None:
     print("Generating tests...")
     for problem_num, problem in enumerate(problems):
         if not problem.generate_prompts(precompiled_stdc):
@@ -108,13 +108,14 @@ def main():
     parser.add_argument('--verbose', '-v', action='store_true', help="Print prompts and expected outputs")
 
     args = parser.parse_args()
-    
+
     problems = Problem.read_problems_from_dir(args.path) if args.folder else [Problem(args.path)]
     client = get_chat(args.model)
     results = eval_chat(problems, client, args.workers, args.tests, args.verbose, args.precompiled_stdc)
-    for id, accuracy in results.items():
-        print(f"PROBLEM {id} ACCURACY: {accuracy}")
-   
+    if results is not None:
+        for id, accuracy in results.items():
+            print(f"PROBLEM {id} ACCURACY: {accuracy}")
+
 
 if __name__ == "__main__":
     main()
