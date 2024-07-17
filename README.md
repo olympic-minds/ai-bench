@@ -3,10 +3,7 @@
 Repository for storing AI benchmark problems.
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip3 install -r requirements.txt
-git submodule update --init --recursive
+source ./scripts/bootstrap
 python3 eval.py ./tasks/assert-tasks/graph-task -h
 ```
 

@@ -83,11 +83,14 @@ int main() {
 
 }
 void printGraphToAppropriateFiles(int testNumber, const Graph& g) {
-    string promptIn = g.toString(Prompt) + std::to_string(g.numberOfNodes);
-    string promptFilePath = dirs.at("promptInputDirectory") + "/" + std::to_string(testNumber) + ".in";
-    printToFile(promptIn, promptFilePath);
+    auto [promptInStream, solutionInStream] = setupTest(testNumber); 
 
-    string solutionIn = g.toString(Solution);
-    string solutionFilePath = dirs.at("solutionInputDirectory") + "/" + std::to_string(testNumber) + ".in";
-    printToFile(solutionIn, solutionFilePath);
+    g.printTo(promptInStream, Prompt);
+    promptInStream << g.numberOfNodes;
+
+    g.printTo(solutionInStream, Solution);
+    solutionInStream << g.numberOfNodes;
+
+    promptInStream.close();
+    solutionInStream.close();
 }
