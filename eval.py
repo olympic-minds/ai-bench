@@ -70,7 +70,7 @@ def evaluate_test(
 
     if len(model_outs) != num_tests * len(solution_outs):
         raise ValueError(
-            f"""Directories '{model_outs}' and '{solution_outs}' have incorrect number of files. 
+            f"""Directories '{model_outs}' and '{solution_outs}' have incorrect number of files.
                         The number of files in '{model_outs}' should be equal to the number of files in '{solution_outs} multipled by the number of tests (-t parameter)'
                         """
         )
