@@ -15,6 +15,7 @@ from util import process_files
 
 class ChatModel(Enum):
     GPT = "gpt"
+    GPT4 = "gpt4"
     GEMINI = "gemini"
 
 
@@ -26,6 +27,8 @@ def get_chat(chatModel: ChatModel):
         return Gemini()
     elif chatModel == ChatModel.GPT:
         return ChatGPT()
+    elif chatModel == ChatModel.GPT4:
+        return ChatGPT("gpt-4-turbo")
 
 
 # evaluates the model. Returns problem_id, the number of successful answers and the total number of problems
