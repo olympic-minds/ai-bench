@@ -80,11 +80,6 @@ def evaluate_test(
     def model_outs_for_solution_outs(solution_outs):
         return [out for out in solution_outs for _ in range(num_tests)]
 
-    for model_out_filename, solution_out_filename in zip(
-        sorted(model_outs), sorted(model_outs_for_solution_outs(solution_outs))
-    ):
-        print(model_out_filename, solution_out_filename)
-
     return (
         problem_path,
         sum(
