@@ -176,7 +176,7 @@ def main():
     )
     if results is not None:
         for id, accuracy in results.items():
-            print(f"PROBLEM {id} ACCURACY: {accuracy}")
+            print(f"PROBLEM {id} ACCURACY: {accuracy:.3f}")
 
 
 if __name__ == "__main__":
