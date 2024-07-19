@@ -4,20 +4,19 @@ using namespace std;
 
 void printGraphToAppropriateFiles(int testNumber, const Graph& g);
 
-
 void testEmptyGraph(int testNumber) {
-    int numOfNodes = rnd.next(5, 10); 
+    int numOfNodes = rnd.next(5, 10);
     printGraphToAppropriateFiles(testNumber, Graph::construct_undirected_clique(numOfNodes));
 }
 
 void testShortPath(int testNumber) {
-    int numOfNodes = rnd.next(5, 10); 
+    int numOfNodes = rnd.next(5, 10);
     printGraphToAppropriateFiles(testNumber, Graph::construct_path_graph(numOfNodes));
 }
 
 void testMultipleShortPaths(int testNumber) {
     int numOfNodes = rnd.next(8, 15);
-    int numOfPaths = rnd.next(3, 6); 
+    int numOfPaths = rnd.next(3, 6);
     printGraphToAppropriateFiles(testNumber, Graph::construct_path_graph(numOfNodes, numOfPaths));
 }
 
@@ -46,9 +45,9 @@ void testShallowForrest(int testNumber) {
 }
 
 void testStarfish(int testNumber) {
-    int numOfNodes = rnd.next(5, 20); 
+    int numOfNodes = rnd.next(5, 20);
     int numOfRays = rnd.next(3, 4);
-    int maxRayLength = 7; 
+    int maxRayLength = 7;
 
     printGraphToAppropriateFiles(testNumber, Graph::construct_starfish_graph(numOfNodes, numOfRays, maxRayLength));
 }
@@ -59,10 +58,9 @@ void testSparseGraph(int testNumber) {
     printGraphToAppropriateFiles(testNumber, Graph::construct_sparse_graph(numOfNodes));
 }
 
-
 int main() {
     int seed;
-    cin>>seed;
+    cin >> seed;
     registerGen(seed);
     setupDirectories();
 
@@ -77,19 +75,15 @@ int main() {
         {7, testSparseGraph},
     };
 
-    for(auto [testId, test]: tests) {
+    for (auto [testId, test] : tests) {
         test(testId);
     }
-
 }
 void printGraphToAppropriateFiles(int testNumber, const Graph& g) {
-    auto [promptInStream, solutionInStream] = setupTest(testNumber); 
+    auto [promptInStream, solutionInStream] = setupTest(testNumber);
 
     g.printTo(promptInStream, Prompt);
-    promptInStream << g.numberOfNodes;
-
     g.printTo(solutionInStream, Solution);
-    solutionInStream << g.numberOfNodes;
 
     promptInStream.close();
     solutionInStream.close();

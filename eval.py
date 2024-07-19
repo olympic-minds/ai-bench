@@ -46,10 +46,7 @@ def evaluate_test(
     solution_out_dir = f"{problem_path}/{Problem.dirs['out']}"
 
     def fetch_model_response(prompt: str) -> List[str]:
-        return [
-            Problem.clean_output(output)
-            for output in client.prompt(prompt, completions=num_tests)
-        ]
+        return client.prompt(prompt, completions=num_tests)
 
     def create_additional_files(filename: str) -> List[str]:
         name, ext = os.path.splitext(filename)
@@ -84,8 +81,10 @@ def evaluate_test(
             for model_out_filename, solution_out_filename in zip(
                 sorted(model_outs), sorted(model_outs_for_solution_outs(solution_outs))
             )
-            if open(os.path.join(model_out_dir, model_out_filename), "r").read()
-            == open(os.path.join(solution_out_dir, solution_out_filename), "r").read()
+            if Problem.compare_outputs(
+                open(os.path.join(solution_out_dir, solution_out_filename), "r").read(),
+                open(os.path.join(model_out_dir, model_out_filename), "r").read(),
+            )
         ),
         len(model_outs),
     )
@@ -102,7 +101,7 @@ def eval_chat(
     print("Generating tests...")
     for problem_num, problem in enumerate(problems):
         if not problem.generate_prompts(precompiled_stdc):
-            print("Test generation failed")
+            print(f"Test generation failed for problem {problem.id}")
             return
 
     results: Dict[str, Tuple[int, int]] = {}

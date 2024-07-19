@@ -9,7 +9,7 @@ int main() {
     cin >> n >> m;
     graph1.resize(n);
 
-    while(m--) {
+    while (m--) {
         int a, b;
         cin >> a >> b;
         graph1[a].push_back(b);
@@ -18,15 +18,15 @@ int main() {
     int n2, m2;
     cin >> n2 >> m2;
     graph2.resize(n2);
-    for(int i = 0; i < m2; i++) {
+    for (int i = 0; i < m2; i++) {
         int a, b;
         cin >> a >> b;
         graph2[a].push_back(b);
     }
 
     if (graph1 == graph2) {
-        cout << "true";
+        cout << 1;
     } else {
-        cout << "false";
+        cout << 0;
     }
 }

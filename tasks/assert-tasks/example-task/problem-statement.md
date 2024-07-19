@@ -1,19 +1,18 @@
-Make sure you use a valid c++ vector definition. Only output the values in brackets
 ```cpp
-#include<bits/stdc++.h>
-using namespace std;
-
-vector<int> graph[] = @IN_1
-
-vector<int> ans;
-bool visited[@IN_2];
-
-vector<int> DFS(int v) {
-    dfs(v);
-    return ans;
+int hash_vector(const vector<int> &vec) {
+    int result = 0;
+    for (int i = 0; i < (int)vec.size(); i++) {
+        result += (i + 1) * vec[i];
+    }
+    return result;
 }
 
-void dfs (int v) {
+vector<vector<int>> graph;
+
+vector<int> ans;
+vector<bool> visited;
+
+void dfs(int v) {
     ans.push_back(v);
     visited[v] = true;
     for (int u : graph[v]) {
@@ -23,5 +22,13 @@ void dfs (int v) {
     }
 }
 
-assert(DFS(0) == vector<int>(@ANS));
+int DFS(vector<vector<int>> g) {
+    graph = g;
+    visited.assign(graph.size(), false);
+    dfs(0);
+    return hash_vector(ans);
+}
+
+assert(DFS({{0}, {1}}) == 2);
+assert(DFS(@IN_1) == @ANS);
 ```

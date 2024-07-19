@@ -1,12 +1,20 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
+
+int hash_vector(const vector<int> &vec) {
+    int result = 0;
+    for (int i = 0; i < (int)vec.size(); i++) {
+        result += (i + 1) * vec[i];
+    }
+    return result;
+}
 
 vector<vector<int>> graph;
 
 vector<int> ans;
-bool visited[1000000];
+vector<bool> visited;
 
-void dfs (int v) {
+void dfs(int v) {
     ans.push_back(v);
     visited[v] = true;
     for (int u : graph[v]) {
@@ -16,31 +24,24 @@ void dfs (int v) {
     }
 }
 
-vector<int> DFS(int v) {
-    dfs(v);
-    return ans;
+int DFS(vector<vector<int>> g) {
+    graph = g;
+    visited.assign(graph.size(), false);
+    dfs(0);
+    return hash_vector(ans);
 }
 
-int main () {
+int main() {
     int n, m;
     cin >> n >> m;
-    graph.resize(n);
+    vector<vector<int>> g(n);
     for (int i = 0; i < m; i++) {
         int u, v;
         cin >> u >> v;
-        graph[u].push_back(v);
-        graph[v].push_back(u);
+        g[u].push_back(v);
+        g[v].push_back(u);
     }
 
-    vector<int> res = DFS(0);
-    cout << "{";
-    for (int i = 0 ; i < res.size() ; i++) {
-        cout << res[i]; 
-        if (i != res.size() - 1) {
-            cout << ",";
-        }
-    }
-    cout << "}";
-
+    cout << DFS(g) << '\n';
     return 0;
 }

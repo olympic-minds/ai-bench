@@ -3,6 +3,7 @@ import subprocess
 import random
 import json
 import hashlib
+import re
 
 from util import process_files
 
@@ -24,6 +25,17 @@ class Problem:
         "prompt_in": "prompt-in",
         "model_out": "model-out",
     }
+
+    class SolutionExecutionFailed(Exception):
+        def __init__(self, message):
+            self.message = message
+            super().__init__(self.message)
+
+    class InvalidSolutionOutputFormat(Exception):
+        def __init__(self, output):
+            self.output = output
+            self.message = f"Invalid solution output format, it should be a single integer, but got: {output}"
+            super().__init__(self.message)
 
     def __init__(self, folder_path: str = ""):
         self.ingen = ""
@@ -108,7 +120,7 @@ class Problem:
 
         if process.returncode != 0:
             print(
-                f"Ingen execution failed (return code: {process.returncode}) with the following error:"
+                f"Ingen execution failed (return code: {process.returncode}), stderr:"
             )
             print(stderr.decode())
             return False
@@ -130,21 +142,32 @@ class Problem:
         stdout, stderr = process.communicate(input=test.encode())
 
         if process.returncode != 0:
-            print(
-                f"Solution execution failed (return code: {process.returncode}) with the following error:"
+            raise Problem.SolutionExecutionFailed(
+                f"Solution execution failed (return code: {process.returncode}), stderr:\n{stderr.decode()}"
             )
-            print(stderr.decode())
             return ""
 
         return stdout.decode()
 
     @staticmethod
-    def clean_output(output: str):
-        output = output.replace(" ", "").replace("\n", "")
-        output = (
-            output.removeprefix("```cpp").removeprefix("```cpp").removesuffix("```")
-        )
-        return output
+    def clean_output(solution_output: str) -> int:
+        solution_output = solution_output.strip()
+        try:
+            return int(solution_output)
+        except ValueError as e:
+            raise Problem.InvalidSolutionOutputFormat(solution_output) from e
+
+    @staticmethod
+    def get_last_integer(output: str) -> int | None:
+        numbers = re.findall(r"[-\+]?\d+", output)
+        if numbers:
+            return int(numbers[-1])
+
+    @staticmethod
+    def compare_outputs(solution_output: str, model_output: str) -> bool:
+        clean_solution_output = Problem.clean_output(solution_output)
+        clean_model_output = Problem.get_last_integer(model_output)
+        return clean_solution_output == clean_model_output
 
     def generate_prompts(self, precompiled_stdc_path: str | None = None) -> bool:
         self.ingen_bin = Problem.compile_cpp(
@@ -203,14 +226,21 @@ class Problem:
         solution_out_in_directory = f'{self.id}/{Problem.dirs["out"]}'
 
         # generate solutions from ins, which were generated into solution-in/ directory by gen.cpp
-        process_files(
-            input_dir=solution_in_directory,
-            output_dir=solution_out_in_directory,
-            modify_content=lambda test_in: [
-                Problem.clean_output(self.generate_solution(test_in))
-            ],
-            modify_filename=lambda filename: [get_out_filename(filename)],
-        )
+        try:
+            process_files(
+                input_dir=solution_in_directory,
+                output_dir=solution_out_in_directory,
+                modify_content=lambda test_in: [
+                    str(Problem.clean_output(self.generate_solution(test_in)))
+                ],
+                modify_filename=lambda filename: [get_out_filename(filename)],
+            )
+        except (
+            Problem.SolutionExecutionFailed,
+            Problem.InvalidSolutionOutputFormat,
+        ) as e:
+            print(e.message)
+            return False
 
         return True
 
