@@ -4,7 +4,6 @@ import random
 import json
 import hashlib
 import re
-
 from util import process_files
 
 
@@ -35,6 +34,13 @@ class Problem:
         def __init__(self, output):
             self.output = output
             self.message = f"Invalid solution output format, it should be a single integer, but got: {output}"
+            super().__init__(self.message)
+
+    class IncorrectNumberOfFiles(Exception):
+        def __init__(self, model_out_dir, solution_out_dir):
+            self.message = f"""Directories '{model_out_dir}' and '{solution_out_dir}' have incorrect number of files.
+                        The number of files in '{model_out_dir}' should be equal to the number of files in '{solution_out_dir} multipled by the number of tests (-t parameter)'
+                        """
             super().__init__(self.message)
 
     def __init__(self, folder_path: str = ""):
@@ -164,7 +170,10 @@ class Problem:
             return int(numbers[-1])
 
     @staticmethod
-    def compare_outputs(solution_output: str, model_output: str) -> bool:
+    def compare_outputs(
+        solution_output: str,
+        model_output: str,
+    ) -> bool:
         clean_solution_output = Problem.clean_output(solution_output)
         clean_model_output = Problem.get_last_integer(model_output)
         return clean_solution_output == clean_model_output
