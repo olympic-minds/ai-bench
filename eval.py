@@ -111,7 +111,7 @@ def eval_chat(
             )
             futures.append(future)
 
-        print("Evalutaing model...")
+        print("Evaluating model...")
         for future in tqdm(as_completed(futures), total=len(futures)):
             problem_id, score, total = future.result()
             results[problem_id] = (score, total)
