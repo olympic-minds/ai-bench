@@ -1,4 +1,7 @@
 import os
+import argparse
+from tqdm import tqdm
+from enum import Enum
 from typing import Dict, List, Tuple
 from problem import Problem
 from chat import Chat
@@ -6,10 +9,6 @@ from gemini import Gemini
 from chatgpt import ChatGPT
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict, Counter
-from tqdm import tqdm
-
-from enum import Enum
-
 from util import process_files, match_tests_to_prompts
 from print_results import print_results_for_problem
 
@@ -121,9 +120,6 @@ def eval_chat(
             print(f"PROBLEM {id} CORRECT: {correct[0]}/{correct[1]}")
         print("-" * 32)
     return {id: correct[0] / correct[1] for id, correct in results.items()}
-
-
-import argparse
 
 
 def main():
