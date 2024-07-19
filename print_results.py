@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import argparse
 from problem import Problem
 from typing import Dict, List, Tuple
 from util import match_tests_to_prompts, TerminalColor
@@ -82,9 +83,6 @@ def print_results_for_problem(problem_path: str, verbose: bool = False):
             open(os.path.join(solution_out_dir, solution_out_filename), "r").read(),
             verbose,
         )
-
-
-import argparse
 
 
 def main():
