@@ -133,7 +133,9 @@ def main():
     parser.add_argument(
         "path", type=str, help="Path to problem or directory of problems"
     )
-    parser.add_argument("model", type=ChatModel, help="Model gpt/gemini")
+    parser.add_argument(
+        "model", type=ChatModel, help="Model gpt/gpt4/gemini/gemini-flash"
+    )
     parser.add_argument(
         "--tests", "-t", type=int, help="Number of generated tests", default=5
     )

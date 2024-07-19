@@ -4,7 +4,7 @@ Repository for storing AI benchmark problems.
 
 ```bash
 source ./scripts/bootstrap
-python3 eval.py ./tasks/assert-tasks/graph-task -h
+python3 eval.py -h
 ```
 
 To precompile headers use the following commands:
