@@ -14,9 +14,10 @@ from util import process_files
 
 
 class ChatModel(Enum):
+    GEMINI = "gemini"
+    GEMINI_FLASH = "gemini-flash"
     GPT = "gpt"
     GPT4 = "gpt4"
-    GEMINI = "gemini"
 
 
 SYSTEM_PROMPT = "What should @ANS be substituted for, for assert to evaluate true? Output only substitution for @ANS. Make sure to only print the substitution."
@@ -24,11 +25,13 @@ SYSTEM_PROMPT = "What should @ANS be substituted for, for assert to evaluate tru
 
 def get_chat(chatModel: ChatModel):
     if chatModel == ChatModel.GEMINI:
-        return Gemini()
+        return Gemini(system_prompt=SYSTEM_PROMPT)
+    elif chatModel == ChatModel.GEMINI_FLASH:
+        return Gemini(model="gemini-1.5-flash", system_prompt=SYSTEM_PROMPT)
     elif chatModel == ChatModel.GPT:
-        return ChatGPT()
+        return ChatGPT(system_prompt=SYSTEM_PROMPT)
     elif chatModel == ChatModel.GPT4:
-        return ChatGPT("gpt-4-turbo")
+        return ChatGPT(model="gpt-4-turbo", system_prompt=SYSTEM_PROMPT)
 
 
 # evaluates the model. Returns problem_id, the number of successful answers and the total number of problems
@@ -43,18 +46,9 @@ def evaluate_test(
     solution_out_dir = f"{problem_path}/{Problem.dirs['out']}"
 
     def fetch_model_response(prompt: str) -> List[str]:
-        if executor is not None:
-            return list(
-                executor.map(
-                    lambda _: Problem.clean_output(
-                        client.prompt(SYSTEM_PROMPT, prompt)
-                    ),
-                    range(num_tests),
-                )
-            )
         return [
-            Problem.clean_output(client.prompt(SYSTEM_PROMPT, prompt))
-            for _ in range(num_tests)
+            Problem.clean_output(output)
+            for output in client.prompt(prompt, completions=num_tests)
         ]
 
     def create_additional_files(filename: str) -> List[str]:
