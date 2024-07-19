@@ -35,3 +35,21 @@ def process_files(
             output_file_path = os.path.join(output_dir, modified_filename)
             with open(output_file_path, "w") as f:
                 f.write(modified_content)
+
+
+# makes an array, which has the original elements repeated `num_tests` times.
+# for example [test1, test2, test3] num_tests = 2 -> [test1, test1, test2, test2, test3, test3]
+def match_tests_to_prompts(tests, num_tests):
+    return [test for test in tests for _ in range(num_tests)]
+
+
+class TerminalColor:
+    HEADER = "\033[36m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[32m"
+    WARNING = "\033[93m"
+    FAIL = "\033[31m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
