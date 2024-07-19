@@ -249,9 +249,12 @@ class Problem:
     @staticmethod
     def read_problems_from_dir(dir_path: str):
         problems = []
-        for root, dirs, files in os.walk(dir_path):
-            for dir_name in dirs:
-                path = os.path.join(root, dir_name)
-                problem = Problem(path)
-                problems.append(problem)
+        for dirname in os.listdir(dir_path):
+            problem_dir_path = os.path.join(dir_path, dirname)
+
+            if not os.path.isdir(problem_dir_path):
+                continue
+
+            problem = Problem(problem_dir_path)
+            problems.append(problem)
         return problems
