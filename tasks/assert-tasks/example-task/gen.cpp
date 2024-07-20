@@ -54,8 +54,12 @@ void testStarfish(int testNumber) {
 
 void testSparseGraph(int testNumber) {
     int numOfNodes = rnd.next(10, 15);
-    int numberOfTrees = rnd.next(3, 4);
     printGraphToAppropriateFiles(testNumber, Graph::construct_sparse_graph(numOfNodes));
+}
+
+void testDenseGraph(int testNumber) {
+    int numOfNodes = rnd.next(10, 15);
+    printGraphToAppropriateFiles(testNumber, Graph::construct_dense_graph(numOfNodes));
 }
 
 int main() {
@@ -64,16 +68,15 @@ int main() {
     registerGen(seed);
     setupDirectories();
 
-    std::map<int, std::function<void(int)>> tests = {
-        {0, testEmptyGraph},
-        {1, testShortPath},
-        {2, testMultipleShortPaths},
-        {3, testSmallClique},
-        {4, testForrest},
-        {5, testShallowForrest},
-        // {6, testStarfish},
-        {7, testSparseGraph},
-    };
+    std::map<int, std::function<void(int)>> tests = {{0, testEmptyGraph},
+                                                     {1, testShortPath},
+                                                     {2, testMultipleShortPaths},
+                                                     {3, testSmallClique},
+                                                     {4, testForrest},
+                                                     {5, testShallowForrest},
+                                                     // {6, testStarfish},
+                                                     {7, testSparseGraph},
+                                                     {8, testDenseGraph}};
 
     for (auto [testId, test] : tests) {
         test(testId);
