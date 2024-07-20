@@ -79,8 +79,8 @@ def print_results_for_problem(problem_path: str, verbose: bool = False):
             problem_path,
             open(os.path.join(prompt_in_dir, prompt_in_filename), "r").read(),
             open(os.path.join(in_dir, in_filename), "r").read(),
-            open(os.path.join(model_out_dir, model_out_filename), "r").read(),
             open(os.path.join(solution_out_dir, solution_out_filename), "r").read(),
+            open(os.path.join(model_out_dir, model_out_filename), "r").read(),
             verbose,
         )
 
