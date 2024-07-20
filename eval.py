@@ -20,18 +20,34 @@ class ChatModel(Enum):
     GPT4 = "gpt4"
 
 
-SYSTEM_PROMPT = "What should @ANS be substituted for, for assert to evaluate true? Output only substitution for @ANS. Make sure to only print the substitution."
+class SystemPrompt(Enum):
+    ONE_SHOT = "one_shot"
+    CHAIN_OF_THOUGHT = "chain_of_thought"
 
 
-def get_chat(chatModel: ChatModel):
-    if chatModel == ChatModel.GEMINI:
-        return Gemini(system_prompt=SYSTEM_PROMPT)
-    elif chatModel == ChatModel.GEMINI_FLASH:
-        return Gemini(model="gemini-1.5-flash", system_prompt=SYSTEM_PROMPT)
-    elif chatModel == ChatModel.GPT:
-        return ChatGPT(system_prompt=SYSTEM_PROMPT)
-    elif chatModel == ChatModel.GPT4:
-        return ChatGPT(model="gpt-4-turbo", system_prompt=SYSTEM_PROMPT)
+SYSTEM_PROMPT = {
+    SystemPrompt.ONE_SHOT: "What should @ANS be substituted for, for assert to evaluate true? The answer is an integer. Output only the substitution for @ANS - an integer.",
+    SystemPrompt.CHAIN_OF_THOUGHT: "What should @ANS be substituted for, for assert to evaluate true? The answer is an integer. First write your thoughts, perhaps simulate the execution of the program, but remember that the last number you write is the answer which should be substituted for @ANS.",
+}
+
+
+def get_chat(
+    chat_model: ChatModel,
+    system_prompt: SystemPrompt,
+):
+    match chat_model:
+        case ChatModel.GEMINI:
+            return Gemini(system_prompt=SYSTEM_PROMPT[system_prompt])
+        case ChatModel.GEMINI_FLASH:
+            return Gemini(
+                model="gemini-1.5-flash", system_prompt=SYSTEM_PROMPT[system_prompt]
+            )
+        case ChatModel.GPT:
+            return ChatGPT(system_prompt=SYSTEM_PROMPT[system_prompt])
+        case ChatModel.GPT4:
+            return ChatGPT(
+                model="gpt-4-turbo", system_prompt=SYSTEM_PROMPT[system_prompt]
+            )
 
 
 # evaluates the model. Returns problem_id, the number of successful answers and the total number of problems
@@ -149,6 +165,12 @@ def main():
         help="Path is the path to problems directory",
     )
     parser.add_argument(
+        "--chain_of_thought",
+        "--cot",
+        action="store_true",
+        help="Use 'chain of thought' prompting method",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="count",
@@ -163,7 +185,14 @@ def main():
         if args.folder
         else [Problem(args.path)]
     )
-    client = get_chat(args.model)
+    client = get_chat(
+        args.model,
+        (
+            SystemPrompt.CHAIN_OF_THOUGHT
+            if args.chain_of_thought
+            else SystemPrompt.ONE_SHOT
+        ),
+    )
     results = eval_chat(
         problems, client, args.workers, args.tests, args.verbose, args.precompiled_stdc
     )
