@@ -14,8 +14,8 @@ class Problem:
     INGEN_EXEC_PATH = "bin/ingen_{sum}.e"
     SOLUTION_EXEC_PATH = "bin/solution_{sum}.e"
 
-    TESTLIB_PATH = "testlib/testlib.h"
-    READWRITER_PATH = "testlib/readwriter.h"
+    READWRITER_H_PATH = "testlib/readwriter.h"
+    GRAPH_H_PATH = "testlib/graph.h"
 
     dirs = {
         "in": "in",
@@ -90,9 +90,12 @@ class Problem:
         if include_testlib:
             compile_command += [
                 "-include",
-                Problem.TESTLIB_PATH,
+                Problem.READWRITER_H_PATH,
+            ]
+        else:
+            compile_command += [
                 "-include",
-                Problem.READWRITER_PATH,
+                Problem.GRAPH_H_PATH,
             ]
 
         if precompiled_stdc_path is not None:
