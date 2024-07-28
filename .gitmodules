@@ -1,3 +1,0 @@
-[submodule "testlib"]
-	path = testlib
-	url = git@github.com:olympic-minds/testlib.git
