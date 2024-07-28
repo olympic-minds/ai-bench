@@ -70,7 +70,12 @@ class Problem:
         return # todo: handle error
 
     def generate_tests(self, seed: int) -> bool:
-        process = subprocess.run([self.INGEN_EXEC_PATH], input=str(seed), cwd=self.id, check=True, capture_output=True, text=True)
+        try:
+            process = subprocess.run([self.INGEN_EXEC_PATH], input=str(seed), cwd=self.id, check=True, capture_output=True, text=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
+            print(f"stdout: {e.stdout}")
+            print(f"stderr: {e.stderr}")
         return True # todo: handle error
 
     def generate_solution(self, test: str) -> str:
