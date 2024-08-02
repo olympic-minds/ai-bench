@@ -11,11 +11,8 @@ class Problem:
     IN_KEYWORD = "@IN_{num}"
     OUT_KEYWORD = "@ANS"
 
-    INGEN_EXEC_PATH = "bin/ingen_{sum}.e"
-    SOLUTION_EXEC_PATH = "bin/solution_{sum}.e"
-
-    READWRITER_H_PATH = "testlib/readwriter.h"
-    GRAPH_H_PATH = "testlib/graph.h"
+    INGEN_EXEC_PATH = "./gen"
+    SOLUTION_EXEC_PATH = "./solution"
 
     dirs = {
         "in": "in",
@@ -67,96 +64,23 @@ class Problem:
 
     @staticmethod
     def compile_cpp(
-        code: str,
-        executable: str,
         problem_path: str,
-        include_testlib: bool = False,
-        precompiled_stdc_path: str | None = None,
     ) -> str | None:
-        executable = executable.format(
-            sum=hashlib.md5(code.encode("utf-8")).hexdigest()
-        )
-
-        outFile = os.path.join(problem_path, executable)
-        if os.path.isfile(outFile):
-            return executable
-
-        directory = os.path.dirname(outFile)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        compile_command = ["g++", "-std=c++20"]
-
-        if include_testlib:
-            compile_command += [
-                "-include",
-                Problem.READWRITER_H_PATH,
-            ]
-        else:
-            compile_command += [
-                "-include",
-                Problem.GRAPH_H_PATH,
-            ]
-
-        if precompiled_stdc_path is not None:
-            compile_command += ["-include", precompiled_stdc_path]
-
-        compile_command += ["-o", outFile, "-x", "c++", "-"]
-
-        process = subprocess.Popen(
-            compile_command,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        _, stderr = process.communicate(input=code.encode())
-
-        if process.returncode != 0:
-            print("Compilation failed with the following error:")
-            print(stderr.decode())
-            return
-        return executable
+        result = subprocess.run(['make'], cwd=problem_path, check=True, capture_output=True, text=True)
+        return # todo: handle error
 
     def generate_tests(self, seed: int) -> bool:
-        if self.ingen_bin is None:
-            print("Ingen not compiled")
-            return False
-        run_command = [self.ingen_bin]
-        process = subprocess.Popen(
-            run_command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.id
-        )
-        stdout, stderr = process.communicate(input=f"{seed}\n".encode())
-
-        if process.returncode != 0:
-            print(
-                f"Ingen execution failed (return code: {process.returncode}), stderr:"
-            )
-            print(stderr.decode())
-            return False
-
-        return True
+        try:
+            process = subprocess.run([self.INGEN_EXEC_PATH], input=str(seed), cwd=self.id, check=True, capture_output=True, text=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
+            print(f"stdout: {e.stdout}")
+            print(f"stderr: {e.stderr}")
+        return True # todo: handle error
 
     def generate_solution(self, test: str) -> str:
-        if self.solution_bin is None:
-            print("Solution not compiled")
-            return ""
-        run_command = [self.solution_bin]
-        process = subprocess.Popen(
-            run_command,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=self.id,
-        )
-        stdout, stderr = process.communicate(input=test.encode())
-
-        if process.returncode != 0:
-            raise Problem.SolutionExecutionFailed(
-                f"Solution execution failed (return code: {process.returncode}), stderr:\n{stderr.decode()}"
-            )
-            return ""
-
-        return stdout.decode()
+        process = subprocess.run([self.SOLUTION_EXEC_PATH], input=str(test), cwd=self.id, check=True, capture_output=True, text=True)
+        return process.stdout
 
     @staticmethod
     def clean_output(solution_output: str) -> int:
@@ -182,21 +106,14 @@ class Problem:
         return clean_solution_output == clean_model_output
 
     def generate_prompts(self, precompiled_stdc_path: str | None = None) -> bool:
-        self.ingen_bin = Problem.compile_cpp(
-            self.ingen, Problem.INGEN_EXEC_PATH, self.id, True, precompiled_stdc_path
-        )
-        self.solution_bin = Problem.compile_cpp(
-            self.solution,
-            Problem.SOLUTION_EXEC_PATH,
-            self.id,
-            False,
-            precompiled_stdc_path,
-        )
+        Problem.compile_cpp(self.id)
 
-        if self.ingen_bin is None or self.solution_bin is None:
-            return False
+        # Todo: handle  error
+        # if self.ingen_bin is None or self.solution_bin is None:
+        #     return False
 
-        random_seed = random.randint(0, 10000)
+        # random_seed = random.randint(0, 10000)
+        random_seed = 1
         if not self.generate_tests(random_seed):
             return False
 
