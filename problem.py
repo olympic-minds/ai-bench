@@ -105,16 +105,10 @@ class Problem:
         clean_model_output = Problem.get_last_integer(model_output)
         return clean_solution_output == clean_model_output
 
-    def generate_prompts(self, precompiled_stdc_path: str | None = None) -> bool:
+    def generate_prompts(self, seed: int) -> bool:
         Problem.compile_cpp(self.id)
 
-        # Todo: handle  error
-        # if self.ingen_bin is None or self.solution_bin is None:
-        #     return False
-
-        # random_seed = random.randint(0, 10000)
-        random_seed = 1
-        if not self.generate_tests(random_seed):
+        if not self.generate_tests(seed):
             return False
 
         def generate_prompt(input: str) -> str:
