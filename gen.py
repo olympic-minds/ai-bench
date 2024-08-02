@@ -3,7 +3,7 @@ from problem import Problem
 
 def generate_variants(path, folder, seed: int):
     problems = (
-        Problem.read_problems_from_dir(path)
+        Problem.read_problems_from_dir(folder)
         if folder
         else [Problem(path)]
     )
