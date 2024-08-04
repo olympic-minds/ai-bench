@@ -28,7 +28,7 @@ class SystemPrompt(Enum):
 
 SYSTEM_PROMPT = {
     SystemPrompt.ONE_SHOT: "What should @ANS be substituted for, for assert to evaluate true? The answer is an integer. Output only the substitution for @ANS - an integer.",
-    SystemPrompt.CHAIN_OF_THOUGHT: "What value should replace @ANS for the assertion to evaluate to true? The answer is an integer. Start by writing down your thoughts and possibly simulate the program's execution. Remember, the final number you write will be the answer that should replace @ANS.",
+    SystemPrompt.CHAIN_OF_THOUGHT: "What value should replace @ANS for the assertion to evaluate true? The answer is an integer. Start by writing down your thoughts and possibly simulate the program's execution. Remember, the final number you write will be the answer that should replace @ANS.",
 }
 
 
