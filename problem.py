@@ -109,6 +109,7 @@ class Problem:
                 stderr=sys.stderr,
                 check=True,
                 text=True,
+                cwd=os.getcwd()
             )
             result = subprocess.run(
                 ["cmake", "--build", ".", "--parallel", str(parallel), "--target"]
@@ -117,6 +118,7 @@ class Problem:
                 stderr=sys.stderr,
                 check=True,
                 text=True,
+                cwd=os.getcwd()
             )
             return True
         except subprocess.CalledProcessError:
