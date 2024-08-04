@@ -1,18 +1,20 @@
 import os
+import sys
 import subprocess
 import random
 import json
 import hashlib
 import re
 from util import process_files
+from typing import List
 
 
 class Problem:
     IN_KEYWORD = "@IN_{num}"
     OUT_KEYWORD = "@ANS"
 
-    INGEN_EXEC_PATH = "./gen"
-    SOLUTION_EXEC_PATH = "./solution"
+    INGEN_EXEC_FORMAT = "./bin/{problem_name}_gen.e"
+    SOLUTION_EXEC_FORMAT = "./bin/{problem_name}_solution.e"
 
     dirs = {
         "in": "in",
@@ -22,10 +24,24 @@ class Problem:
         "model_out": "model-out",
     }
 
-    class SolutionExecutionFailed(Exception):
-        def __init__(self, message):
-            self.message = message
+    class CppProgramExecutionFailed(Exception):
+        def __init__(self, e: subprocess.CalledProcessError):
+            self.message = "\n".join(
+                [
+                    f"Command '{e.cmd}' returned non-zero exit status {e.returncode}.",
+                    f"stdout: \n{e.stdout}",
+                    f"stderr: \n{e.stderr}",
+                ]
+            )
             super().__init__(self.message)
+
+    class IngenExecutionFailed(CppProgramExecutionFailed):
+        def __init__(self, e: subprocess.CalledProcessError):
+            super().__init__(e)
+
+    class SolutionExecutionFailed(CppProgramExecutionFailed):
+        def __init__(self, e: subprocess.CalledProcessError):
+            super().__init__(e)
 
     class InvalidSolutionOutputFormat(Exception):
         def __init__(self, output):
@@ -40,47 +56,99 @@ class Problem:
                         """
             super().__init__(self.message)
 
+    class PromptsNotGenerated(Exception):
+        def __init__(self, problem_path: str):
+            self.message = f"Problem {problem_path} is not generated. Use flag -g or gen.py to generate prompt ins"
+            super().__init__(self.message)
+
     def __init__(self, folder_path: str = ""):
-        self.ingen = ""
-        self.solution = ""
         self.statement = ""
         self.id = folder_path  # todo: consider security of this bit
         if folder_path != "":
             self.read_from_folder(folder_path)
 
     def read_from_folder(self, folder_path):
-        ingen_path = os.path.join(folder_path, "gen.cpp")
-        solution_path = os.path.join(folder_path, "solution.cpp")
+        self.problem_name = Problem.get_problem_name_from_path(folder_path)
+        self.ingen_exec_path = Problem.INGEN_EXEC_FORMAT.format(
+            problem_name=self.problem_name
+        )
+        self.solution_exec_path = Problem.SOLUTION_EXEC_FORMAT.format(
+            problem_name=self.problem_name
+        )
         statement_path = os.path.join(folder_path, "problem-statement.md")
-
-        with open(ingen_path, "r") as ingen_file:
-            self.ingen = ingen_file.read()
-
-        with open(solution_path, "r") as solution_file:
-            self.solution = solution_file.read()
 
         with open(statement_path, "r") as statement_file:
             self.statement = statement_file.read()
 
     @staticmethod
-    def compile_cpp(
-        problem_path: str,
-    ) -> str | None:
-        result = subprocess.run(['make'], cwd=problem_path, check=True, capture_output=True, text=True)
-        return # todo: handle error
+    def get_problem_name_from_path(problem_path: str) -> str:
+        return os.path.basename(os.path.normpath(problem_path))
 
-    def generate_tests(self, seed: int) -> bool:
+    @staticmethod
+    def compile_cpp(
+        problem_paths: List[str], parallel: int = 1, verbose: bool = False
+    ) -> bool:
+        targets = []
+        for problem_path in problem_paths:
+            problem_name = Problem.get_problem_name_from_path(problem_path)
+            gen_target = os.path.basename(
+                os.path.normpath(
+                    Problem.INGEN_EXEC_FORMAT.format(problem_name=problem_name)
+                )
+            )
+            solution_target = os.path.basename(
+                os.path.normpath(
+                    Problem.SOLUTION_EXEC_FORMAT.format(problem_name=problem_name)
+                )
+            )
+            targets.extend([gen_target, solution_target])
         try:
-            process = subprocess.run([self.INGEN_EXEC_PATH], input=str(seed), cwd=self.id, check=True, capture_output=True, text=True)
+            result = subprocess.run(
+                ["cmake", "."],
+                stdout=None if verbose else subprocess.DEVNULL,
+                stderr=sys.stderr,
+                check=True,
+                text=True,
+            )
+            result = subprocess.run(
+                ["cmake", "--build", ".", "--parallel", str(parallel), "--target"]
+                + targets,
+                stdout=None if verbose else subprocess.DEVNULL,
+                stderr=sys.stderr,
+                check=True,
+                text=True,
+            )
+            return True
+        except subprocess.CalledProcessError:
+            print("Compilation failed.")
+            return False
+
+    def generate_tests(self, seed: int) -> None:
+        try:
+            process = subprocess.run(
+                [self.ingen_exec_path],
+                input=str(seed),
+                cwd=self.id,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
         except subprocess.CalledProcessError as e:
-            print(f"Command '{e.cmd}' returned non-zero exit status {e.returncode}.")
-            print(f"stdout: {e.stdout}")
-            print(f"stderr: {e.stderr}")
-        return True # todo: handle error
+            raise Problem.IngenExecutionFailed(e) from e
 
     def generate_solution(self, test: str) -> str:
-        process = subprocess.run([self.SOLUTION_EXEC_PATH], input=str(test), cwd=self.id, check=True, capture_output=True, text=True)
-        return process.stdout
+        try:
+            process = subprocess.run(
+                [self.solution_exec_path],
+                input=str(test),
+                cwd=self.id,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            return process.stdout
+        except subprocess.CalledProcessError as e:
+            raise Problem.SolutionExecutionFailed(e) from e
 
     @staticmethod
     def clean_output(solution_output: str) -> int:
@@ -105,10 +173,16 @@ class Problem:
         clean_model_output = Problem.get_last_integer(model_output)
         return clean_solution_output == clean_model_output
 
-    def generate_prompts(self, seed: int) -> bool:
-        Problem.compile_cpp(self.id)
+    def generate_prompts(
+        self, seed: int, parallel: int = 1, verbose: bool = False
+    ) -> bool:
+        if not Problem.compile_cpp([self.id], parallel, verbose):
+            return False
 
-        if not self.generate_tests(seed):
+        try:
+            self.generate_tests(seed)
+        except Problem.IngenExecutionFailed as e:
+            print(e.message)
             return False
 
         def generate_prompt(input: str) -> str:
@@ -169,8 +243,6 @@ class Problem:
 
     def to_dict(self):
         return {
-            "ingen": self.ingen,
-            "solution": self.solution,
             "statement": self.statement,
             "id": self.id,
         }
@@ -178,8 +250,6 @@ class Problem:
     @staticmethod
     def from_dict(data):
         problem = Problem()
-        problem.ingen = data["ingen"]
-        problem.solution = data["solution"]
         problem.statement = data["statement"]
         problem.id = data["id"]
         return problem
