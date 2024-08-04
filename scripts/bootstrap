@@ -1,8 +1,15 @@
 #!/bin/bash
 
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root or with sudo"
+  exit
+fi
+
 git submodule update --recursive --init
 git config core.hooksPath .githooks
 
 python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
+
+apt install cmake
