@@ -52,6 +52,7 @@ def get_chat(
 
 
 # evaluates the model. Returns problem_id, the number of successful answers and the total number of problems.
+# if the problems are not generated, returs 0/0. use gen.py to generate problems.
 def evaluate_test(
     problem_path: str,
     client: Chat,
