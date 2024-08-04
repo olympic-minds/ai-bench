@@ -1,8 +1,12 @@
 #!/bin/bash
 
-if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root or with sudo"
-  exit
+is_sourced() {
+  [[ "${BASH_SOURCE[0]}" != "${0}" ]]
+}
+
+if ! is_sourced; then
+    echo "Please run this script as source ./scripts/bootstrap"
+    exit 1
 fi
 
 git submodule update --recursive --init
@@ -12,4 +16,4 @@ python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
 
-apt install cmake
+sudo apt install cmake
