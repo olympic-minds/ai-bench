@@ -20,7 +20,7 @@ class Gemini(Chat):
         initial=1.0,
         maximum=64.0,
         multiplier=2.0,
-        timeout=60,
+        timeout=300,
     )
     def prompt(
         self,

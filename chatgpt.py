@@ -5,6 +5,12 @@ from google.api_core import retry
 from typing import List
 import time
 import os
+from tenacity import (
+    retry,
+    wait_exponential,
+    stop_after_attempt,
+    retry_if_exception_type,
+)
 
 
 class ChatGPT(Chat):
@@ -16,12 +22,10 @@ class ChatGPT(Chat):
         self.system_prompt = system_prompt
         pass
 
-    @retry.Retry(
-        predicate=lambda exception: exception is openai.RateLimitError,
-        initial=1.0,
-        maximum=64.0,
-        multiplier=2.0,
-        timeout=60,
+    @retry(
+        retry=retry_if_exception_type(openai.RateLimitError),
+        wait=wait_exponential(multiplier=2, max=60),
+        stop=stop_after_attempt(5),
     )
     def prompt(
         self,
