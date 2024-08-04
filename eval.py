@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict, Counter
 from util import process_files, match_tests_to_prompts
 from print_results import print_results_for_problem
+from gen import generate_variants
 
 
 class ChatModel(Enum):
@@ -59,15 +60,13 @@ def evaluate_test(
     executor: ThreadPoolExecutor | None = None,
     verbose: int = 0,
 ) -> tuple[str, int, int]:
-    prompt_in_dir = os.path.join(problem_path, Problem.dirs['prompt_in'])
-    model_out_dir = os.path.join(problem_path, Problem.dirs['model_out'])
-    solution_out_dir = os.path.join(problem_path, Problem.dirs['out'])
+    prompt_in_dir = os.path.join(problem_path, Problem.dirs["prompt_in"])
+    model_out_dir = os.path.join(problem_path, Problem.dirs["model_out"])
+    solution_out_dir = os.path.join(problem_path, Problem.dirs["out"])
 
-    # if the problems are not generated, return 0/0
     if not os.path.exists(prompt_in_dir):
-        print(f"!!! Problem {prompt_in_dir} is not generated. Use gen.py to generate prompt ins !!!")
-        return (problem_path, 0, 0)
-
+        print(prompt_in_dir)
+        raise Problem.PromptsNotGenerated(problem_path)
 
     def fetch_model_response(prompt: str) -> List[str]:
         return client.prompt(prompt, completions=num_tests)
@@ -116,7 +115,7 @@ def eval_chat(
     num_workers: int,
     num_tests: int,
     verbose: int = 0,
-) -> dict[str, float] | None:
+) -> dict[str, float]:
     results: Dict[str, Tuple[int, int]] = {}
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
         futures = []
@@ -131,11 +130,15 @@ def eval_chat(
             problem_id, score, total = future.result()
             results[problem_id] = (score, total)
 
-    if verbose:
+    if verbose > 0:
         for id, correct in results.items():
             print(f"PROBLEM {id} CORRECT: {correct[0]}/{correct[1]}")
         print("-" * 32)
-    return {id: (correct[0] / correct[1] if correct[1] != 0 else 0) for id, correct in results.items()}
+    return {
+        id: (correct[0] / correct[1] if correct[1] != 0 else 0)
+        for id, correct in results.items()
+    }
+
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate model on a problem")
@@ -164,6 +167,19 @@ def main():
         help="Path is the path to problems directory",
     )
     parser.add_argument(
+        "--generate",
+        "-g",
+        action="store_true",
+        help="Generate problems before evalation",
+    )
+    parser.add_argument(
+        "--seed",
+        "-s",
+        type=int,
+        help="Set the seed for generation (works only when flag -g is set)",
+        default=1,
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="count",
@@ -186,12 +202,16 @@ def main():
             else SystemPrompt.ONE_SHOT
         ),
     )
-    results = eval_chat(
-        problems, client, args.workers, args.tests, args.verbose
-    )
-    if results is not None:
+    if args.generate:
+        if not generate_variants(problems, args.seed, verbose=args.verbose > 0):
+            return
+
+    try:
+        results = eval_chat(problems, client, args.workers, args.tests, args.verbose)
         for id, accuracy in results.items():
             print(f"PROBLEM {id} ACCURACY: {accuracy:.3f}")
+    except (Problem.PromptsNotGenerated, Problem.IncorrectNumberOfFiles) as e:
+        print(e.message)
 
 
 if __name__ == "__main__":

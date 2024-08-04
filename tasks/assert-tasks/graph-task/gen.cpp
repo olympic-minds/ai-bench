@@ -3,7 +3,7 @@ using namespace std;
 
 void printGraphsToAppropriateFiles(int testNumber, const Graph& g1, const Graph& g2);
 
-std::pair<Graph, Graph> differentPaths(int testNumber, int length) {
+std::pair<Graph, Graph> differentPaths(int length) {
     // can't have 2 different paths of length 1 or 2
     assert(length >= 3);
     Graph g1 = Graph::construct_path_graph(length);
@@ -14,7 +14,7 @@ std::pair<Graph, Graph> differentPaths(int testNumber, int length) {
     return {g1, g2};
 }
 
-std::pair<Graph, Graph> equalPaths(int testNumber, int length) {
+std::pair<Graph, Graph> equalPaths(int length) {
     Graph g1 = Graph::construct_path_graph(length);
     return {g1, g1};
 }
