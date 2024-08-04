@@ -6,3 +6,7 @@ git config core.hooksPath .githooks
 python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
+
+
+echo "INSTALLING CMAKE IF MISSING"
+sudo apt  install cmake
