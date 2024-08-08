@@ -17,8 +17,9 @@ from gen import generate_variants
 class ChatModel(Enum):
     GEMINI = "gemini"
     GEMINI_FLASH = "gemini-flash"
-    GPT = "gpt"
-    GPT4 = "gpt4"
+    GPT_4O = "gpt4o"
+    GPT_4O_MINI = "gpt4o-mini"
+    GPT_4_TURBO = "gpt4"
 
 
 class SystemPrompt(Enum):
@@ -28,7 +29,7 @@ class SystemPrompt(Enum):
 
 SYSTEM_PROMPT = {
     SystemPrompt.ONE_SHOT: "What should @ANS be substituted for, for assert to evaluate true? The answer is an integer. Output only the substitution for @ANS - an integer.",
-    SystemPrompt.CHAIN_OF_THOUGHT: "What value should replace @ANS for the assertion to evaluate to true? The answer is an integer. Start by writing down your thoughts and possibly simulate the program's execution. Remember, the final number you write will be the answer that should replace @ANS.",
+    SystemPrompt.CHAIN_OF_THOUGHT: "What value should replace @ANS for the assertion to evaluate true? The answer is an integer. Start by writing down your thoughts and possibly simulate the program's execution. Remember, the final number you write will be the answer that should replace @ANS.",
 }
 
 
@@ -38,14 +39,20 @@ def get_chat(
 ):
     match chat_model:
         case ChatModel.GEMINI:
-            return Gemini(system_prompt=SYSTEM_PROMPT[system_prompt])
+            return Gemini(
+                model="gemini-1.5-pro", system_prompt=SYSTEM_PROMPT[system_prompt]
+            )
         case ChatModel.GEMINI_FLASH:
             return Gemini(
                 model="gemini-1.5-flash", system_prompt=SYSTEM_PROMPT[system_prompt]
             )
-        case ChatModel.GPT:
-            return ChatGPT(system_prompt=SYSTEM_PROMPT[system_prompt])
-        case ChatModel.GPT4:
+        case ChatModel.GPT_4O_MINI:
+            return ChatGPT(
+                model="gpt-4o-mini", system_prompt=SYSTEM_PROMPT[system_prompt]
+            )
+        case ChatModel.GPT_4O:
+            return ChatGPT(model="gpt-4o", system_prompt=SYSTEM_PROMPT[system_prompt])
+        case ChatModel.GPT_4_TURBO:
             return ChatGPT(
                 model="gpt-4-turbo", system_prompt=SYSTEM_PROMPT[system_prompt]
             )
@@ -146,7 +153,7 @@ def main():
         "path", type=str, help="Path to problem or directory of problems"
     )
     parser.add_argument(
-        "model", type=ChatModel, help="Model gpt/gpt4/gemini/gemini-flash"
+        "model", type=ChatModel, help="Model gpt4o/gpt4o-mini/gpt4/gemini/gemini-flash"
     )
     parser.add_argument(
         "--tests", "-t", type=int, help="Number of generated tests", default=5
